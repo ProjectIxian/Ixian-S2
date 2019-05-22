@@ -5,12 +5,12 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "S2Node", "IxianS2\S2Node.csproj", "{F408F9F2-C3A1-4FE2-8443-6D9E251924A8}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IXICore", "IxianCore\IXICore.shproj", "{80487C64-619A-4B60-97BD-ED7670BF45B3}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IXICore", "..\Ixian-Core\IXICore.shproj", "{80487C64-619A-4B60-97BD-ED7670BF45B3}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		IxianCore\IXICore.projitems*{80487c64-619a-4b60-97bd-ed7670bf45b3}*SharedItemsImports = 13
-		IxianCore\IXICore.projitems*{f408f9f2-c3a1-4fe2-8443-6d9e251924a8}*SharedItemsImports = 4
+		..\Ixian-Core\IXICore.projitems*{80487c64-619a-4b60-97bd-ed7670bf45b3}*SharedItemsImports = 13
+		..\Ixian-Core\IXICore.projitems*{f408f9f2-c3a1-4fe2-8443-6d9e251924a8}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B576B454-951B-452B-82F2-CFCBE1770EA8}
+		SolutionGuid = {97344C29-18D5-463D-AD09-4E397CAFA4B6}
 	EndGlobalSection
 EndGlobal
