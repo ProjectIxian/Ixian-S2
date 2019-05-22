@@ -181,10 +181,10 @@ namespace DLT.Meta
             apiServer = new APIServer();
 
             // Prepare stats screen
-            Config.verboseConsoleOutput = verboseConsoleOutput;
+            ConsoleHelpers.verboseConsoleOutput = verboseConsoleOutput;
             Logging.consoleOutput = verboseConsoleOutput;
             Logging.flush();
-            if (Config.verboseConsoleOutput == false)
+            if (ConsoleHelpers.verboseConsoleOutput == false)
             {
                 statsConsoleScreen.clearScreen();
             }

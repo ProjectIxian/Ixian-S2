@@ -25,8 +25,6 @@ namespace DLT
             public static string configFilename = "ixian.cfg";
             public static string walletFile = "ixian.wal";
 
-            public static bool verboseConsoleOutput = false; // Flag for verbose console output
-
             public static int maxLogSize = 50;
             public static int maxLogCount = 10;
 

@@ -1,4 +1,5 @@
 ﻿using DLT.Network;
+using IXICore.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace DLT.Meta
         {
             Console.Clear();
 
-            Console.CursorVisible = Config.verboseConsoleOutput;
+            Console.CursorVisible = ConsoleHelpers.verboseConsoleOutput;
 
             // Start thread
             running = true;
@@ -41,7 +42,7 @@ namespace DLT.Meta
         {
             while (running)
             {
-                if (Config.verboseConsoleOutput == false)
+                if (ConsoleHelpers.verboseConsoleOutput == false)
                     drawScreen();
 
                 Thread.Sleep(2000);

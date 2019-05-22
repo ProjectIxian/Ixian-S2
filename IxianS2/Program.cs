@@ -3,6 +3,7 @@ using DLT.Meta;
 using System;
 using System.Timers;
 using System.Threading;
+using IXICore.Utils;
 
 namespace S2
 {
@@ -23,8 +24,8 @@ namespace S2
             Logging.start();
 
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
-                Config.verboseConsoleOutput = true;
-                Logging.consoleOutput = Config.verboseConsoleOutput;
+                ConsoleHelpers.verboseConsoleOutput = true;
+                Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
                 e.Cancel = true;
                 Node.forceShutdown = true;
             };
@@ -44,8 +45,8 @@ namespace S2
 
         static void onStart(string[] args)
         {
-            bool verboseConsoleOutputSetting = Config.verboseConsoleOutput;
-            Config.verboseConsoleOutput = true;
+            bool verboseConsoleOutputSetting = ConsoleHelpers.verboseConsoleOutput;
+            ConsoleHelpers.verboseConsoleOutput = true;
 
             Console.WriteLine(string.Format("IXIAN S2 {0}", Config.version));
 
@@ -89,7 +90,7 @@ namespace S2
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
             mainLoopTimer.Start();
 
-            if (Config.verboseConsoleOutput)
+            if (ConsoleHelpers.verboseConsoleOutput)
                 Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
         }
 
@@ -107,16 +108,16 @@ namespace S2
                 }
                 else if (key.Key == ConsoleKey.V)
                 {
-                    Config.verboseConsoleOutput = !Config.verboseConsoleOutput;
-                    Logging.consoleOutput = Config.verboseConsoleOutput;
-                    Console.CursorVisible = Config.verboseConsoleOutput;
-                    if (Config.verboseConsoleOutput == false)
+                    ConsoleHelpers.verboseConsoleOutput = !ConsoleHelpers.verboseConsoleOutput;
+                    Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
+                    Console.CursorVisible = ConsoleHelpers.verboseConsoleOutput;
+                    if (ConsoleHelpers.verboseConsoleOutput == false)
                         Node.statsConsoleScreen.clearScreen();
                 }
                 else if (key.Key == ConsoleKey.Escape)
                 {
-                    Config.verboseConsoleOutput = true;
-                    Logging.consoleOutput = Config.verboseConsoleOutput;
+                    ConsoleHelpers.verboseConsoleOutput = true;
+                    Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
                     Node.forceShutdown = true;
                 }
 
