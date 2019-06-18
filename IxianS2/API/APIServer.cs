@@ -2,7 +2,7 @@
 using IXICore;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Net;
 
 namespace S2
@@ -15,15 +15,13 @@ namespace S2
             start(String.Format("http://localhost:{0}/", Config.apiPort));
         }
 
-        protected virtual bool processRequest(HttpListenerContext context, string methodName, NameValueCollection parameters)
+        protected override bool processRequest(HttpListenerContext context, string methodName, Dictionary<string, object> parameters)
         {
-            HttpListenerRequest request = context.Request;
-
             JsonResponse response = null;
 
             if (methodName.Equals("testadd", StringComparison.OrdinalIgnoreCase))
             {
-                byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain(request.QueryString["wallet"]);
+                byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain((string)parameters["wallet"]);
 
                 string responseString = JsonConvert.SerializeObject("Friend added successfully");
 
