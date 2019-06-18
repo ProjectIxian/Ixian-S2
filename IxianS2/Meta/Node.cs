@@ -3,11 +3,7 @@ using IXICore.Utils;
 using S2;
 using S2.Network;
 using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DLT.Meta
 {
@@ -269,24 +265,6 @@ namespace DLT.Meta
             statsConsoleScreen.stop();
         }
 
-        static public void reconnect()
-        {
-
-            // Reset the network receive queue
-            NetworkQueue.reset();
-
-            // Check for test client mode
-            if (Config.isTestClient)
-            {
-                TestClientNode.reconnect();
-                return;
-            }
-
-            // Reconnect server and clients
-            NetworkServer.restartNetworkOperations();
-            NetworkClientManager.restartClients();
-        }
-
         // Cleans the storage cache and logs
         public static bool cleanCacheAndLogs()
         {
@@ -316,6 +294,16 @@ namespace DLT.Meta
         public static string getFullAddress()
         {
             return Config.publicServerIP + ":" + Config.serverPort;
+        }
+
+        public static ulong getLastBlockHeight()
+        {
+            return blockHeight;
+        }
+
+        public static ulong getHighestKnownNetworkBlockHeight()
+        {
+            return getLastBlockHeight();
         }
 
         public static int getLastBlockVersion()
@@ -369,6 +357,11 @@ namespace DLT.Meta
         public static bool isMasterNode()
         {
             return false;
+        }
+
+        public static bool addTransaction(Transaction transaction)
+        {
+            return false; // TODO TODO TODO implement this
         }
     }
 }

@@ -102,7 +102,7 @@ namespace DLT
                 Console.WriteLine("----------- Config File Options -----------");
                 Console.WriteLine(" Config file options should use parameterName = parameterValue semantics.");
                 Console.WriteLine(" Each option should be specified in its own line. Example:");
-                Console.WriteLine("    dltPort = 10234");
+                Console.WriteLine("    s2Port = 10234");
                 Console.WriteLine("    apiPort = 8081");
                 Console.WriteLine("");
                 Console.WriteLine(" Available options:");
@@ -118,6 +118,8 @@ namespace DLT
                 Console.WriteLine("    maxLogCount\t\t Specify maximum number of log files (same as --maxLogCount CLI)");
                 Console.WriteLine("    disableWebStart\t 1 to disable running http://localhost:8081 on startup (same as --disableWebStart CLI)");
                 Console.WriteLine("    forceTimeOffset\t Forces network time offset to the specified value (same as --forceTimeOffset CLI)");
+                Console.WriteLine("    walletNotify\t Execute command when a wallet transaction changes");
+                Console.WriteLine("    blockNotify\t Execute command when the block changes");
 
                 return "";
             }
@@ -199,6 +201,12 @@ namespace DLT
                             break;
                         case "forceTimeOffset":
                             forceTimeOffset = int.Parse(value);
+                            break;
+                        case "walletNotify":
+                            CoreConfig.walletNotifyCommand = value;
+                            break;
+                        case "blockNotify":
+                            CoreConfig.blockNotifyCommand = value;
                             break;
                         default:
                             // unknown key
