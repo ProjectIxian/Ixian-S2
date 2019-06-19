@@ -21,18 +21,9 @@ namespace S2
 
             if (methodName.Equals("testadd", StringComparison.OrdinalIgnoreCase))
             {
-                byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain((string)parameters["wallet"]);
-
-                string responseString = JsonConvert.SerializeObject("Friend added successfully");
-
-                if (TestClientNode.addFriend(wallet) == false)
-                {
-                    responseString = JsonConvert.SerializeObject("Could not find wallet id or add friend");
-                }
-
-                response = new JsonResponse() { result = responseString };
-                
+                response = onTestAdd(parameters);
             }
+
 
             if (response == null)
             {
@@ -47,6 +38,26 @@ namespace S2
             context.Response.Close();
 
             return true;
+        }
+
+        public JsonResponse onTestAdd(Dictionary<string, object> parameters)
+        {
+            if (!parameters.ContainsKey("wallet"))
+            {
+                JsonError error = new JsonError { code = (int)RPCErrorCode.RPC_INVALID_PARAMETER, message = "Parameter 'wallet' is missing" };
+                return new JsonResponse { result = null, error = error };
+            }
+
+            byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain((string)parameters["wallet"]);
+
+            string responseString = JsonConvert.SerializeObject("Friend added successfully");
+
+            if (TestClientNode.addFriend(wallet) == false)
+            {
+                responseString = JsonConvert.SerializeObject("Could not find wallet id or add friend");
+            }
+
+            return new JsonResponse() { result = responseString, error = null };
         }
     }
 }
