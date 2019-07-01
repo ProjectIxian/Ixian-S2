@@ -99,6 +99,24 @@
   <ItemGroup>
     <Content Include="IxianS2.ico" />
   </ItemGroup>
+  <Target Name="CopyHTMLToOutput" AfterTargets="CoreCompile">
+    <ItemGroup>
+      <IXIPB1 Include="$(SolutionDir)\..\Ixian-Core\html\*.*" />
+    </ItemGroup>
+    <ItemGroup>
+      <IXIPB2 Include="$(SolutionDir)\..\Ixian-Core\html\img\*.*" />
+    </ItemGroup>
+    <ItemGroup>
+      <IXIPB3 Include="$(SolutionDir)\..\Ixian-Core\html\css\*.*" />
+    </ItemGroup>
+    <ItemGroup>
+      <IXIPB4 Include="$(SolutionDir)\..\Ixian-Core\html\js\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(IXIPB1)" DestinationFolder="$(OutputPath)\html" ContinueOnError="true" />
+    <Copy SourceFiles="@(IXIPB2)" DestinationFolder="$(OutputPath)\html\img" ContinueOnError="true" />
+    <Copy SourceFiles="@(IXIPB3)" DestinationFolder="$(OutputPath)\html\css" ContinueOnError="true" />
+    <Copy SourceFiles="@(IXIPB4)" DestinationFolder="$(OutputPath)\html\js" ContinueOnError="true" />
+  </Target>
   <Import Project="..\..\Ixian-Core\IXICore.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\IxianDLT\packages\SQLitePCLRaw.lib.e_sqlite3.osx.1.1.11\build\net35\SQLitePCLRaw.lib.e_sqlite3.osx.targets" Condition="Exists('..\IxianDLT\packages\SQLitePCLRaw.lib.e_sqlite3.osx.1.1.11\build\net35\SQLitePCLRaw.lib.e_sqlite3.osx.targets')" />
