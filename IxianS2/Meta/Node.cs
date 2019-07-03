@@ -361,5 +361,10 @@ namespace DLT.Meta
         {
             throw new NotImplementedException();
         }
+
+        public override void shutdown()
+        {
+            forceShutdown = true;
+        }
     }
 }
