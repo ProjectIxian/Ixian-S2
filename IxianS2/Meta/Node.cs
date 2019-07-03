@@ -1,4 +1,6 @@
 ﻿using DLT.Network;
+using IXICore;
+using IXICore.Meta;
 using IXICore.Utils;
 using S2;
 using S2.Network;
@@ -7,7 +9,7 @@ using System.Threading;
 
 namespace DLT.Meta
 {
-    class Node
+    class Node: IxianNode
     {
         // Public
         public static WalletStorage walletStorage;
@@ -25,14 +27,20 @@ namespace DLT.Meta
 
         // Private data
         static Block lastBlock = null;
-        static int requiredConsensus = 0;
 
         private static Thread maintenanceThread;
 
         public static bool running = false;
 
+        public Node()
+        {
+            CoreConfig.productVersion = Config.version;
+            IxianHandler.setHandler(this);
+            init();
+        }
+
         // Perform basic initialization of node
-        static public void init()
+        private void init()
         {
 
 
@@ -53,7 +61,7 @@ namespace DLT.Meta
             walletState = new WalletState();
         }
 
-        static public bool initWallet()
+        private bool initWallet()
         {
             walletStorage = new WalletStorage(Config.walletFile);
 
@@ -66,7 +74,7 @@ namespace DLT.Meta
                 // Request a password
                 // NOTE: This can only be done in testnet to enable automatic testing!
                 string password = "";
-                if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && Config.isTestNet)
+                if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && CoreConfig.isTestNet)
                 {
                     Logging.warn("TestNet detected and wallet password has been specified on the command line!");
                     password = Config.dangerCommandlinePasswordCleartextUnsafe;
@@ -93,7 +101,7 @@ namespace DLT.Meta
 
                     // NOTE: This is only permitted on the testnet for dev/testing purposes!
                     string password = "";
-                    if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && Config.isTestNet)
+                    if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && CoreConfig.isTestNet)
                     {
                         Logging.warn("Attempting to unlock the wallet with a password from commandline!");
                         password = Config.dangerCommandlinePasswordCleartextUnsafe;
@@ -161,12 +169,12 @@ namespace DLT.Meta
             return true;
         }
 
-        static public void start(bool verboseConsoleOutput)
+        public void start(bool verboseConsoleOutput)
         {
             // Network configuration
-            NetworkUtils.configureNetwork();
+            NetworkUtils.configureNetwork(Config.externalIp);
 
-            PresenceList.generatePresenceList(Config.publicServerIP, 'R');
+            PresenceList.generatePresenceList(NetworkClientManager.publicIP, 'R');
 
             // Start the network queue
             NetworkQueue.start();
@@ -174,7 +182,7 @@ namespace DLT.Meta
             ActivityStorage.prepareStorage();
 
             // Start the HTTP JSON API server
-            apiServer = new APIServer();
+            apiServer = new APIServer(Config.apiBinds, Config.apiUsers, Config.apiAllowedIps);
 
             // Prepare stats screen
             ConsoleHelpers.verboseConsoleOutput = verboseConsoleOutput;
@@ -291,22 +299,17 @@ namespace DLT.Meta
             }
         }
 
-        public static string getFullAddress()
-        {
-            return Config.publicServerIP + ":" + Config.serverPort;
-        }
-
-        public static ulong getLastBlockHeight()
+        public override ulong getLastBlockHeight()
         {
             return blockHeight;
         }
 
-        public static ulong getHighestKnownNetworkBlockHeight()
+        public override ulong getHighestKnownNetworkBlockHeight()
         {
             return getLastBlockHeight();
         }
 
-        public static int getLastBlockVersion()
+        public override int getLastBlockVersion()
         {
             if (lastBlock != null)
             {
@@ -315,25 +318,15 @@ namespace DLT.Meta
             return 0;
         }
 
-        public static char getNodeType()
+        public override char getNodeType()
         {
             return 'R';
         }
 
-        public static bool isAcceptingConnections()
+        public override bool isAcceptingConnections()
         {
             // TODO TODO TODO TODO implement this properly
             return true;
-        }
-
-        public static void setRequiredConsensus(int required_consensus)
-        {
-            requiredConsensus = required_consensus;
-        }
-
-        public static int getRequiredConsensus()
-        {
-            return requiredConsensus;
         }
 
         public static void setLastBlock(ulong block_num, byte[] checksum, byte[] ws_checksum, int version)
@@ -349,19 +342,24 @@ namespace DLT.Meta
             blockHeight = block_num;
         }
 
-        public static Block getLastBlock()
+        public override Block getLastBlock()
         {
             return lastBlock;
         }
 
-        public static bool isMasterNode()
+        public override bool addTransaction(Transaction tx)
         {
-            return false;
+            throw new NotImplementedException();
         }
 
-        public static bool addTransaction(Transaction transaction)
+        public override Wallet getWallet(byte[] id)
         {
-            return false; // TODO TODO TODO implement this
+            throw new NotImplementedException();
+        }
+
+        public override IxiNumber getWalletBalance(byte[] id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

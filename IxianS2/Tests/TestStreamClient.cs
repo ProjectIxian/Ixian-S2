@@ -169,7 +169,7 @@ namespace S2
                     writer.Write(address);
 
                     // Send the testnet designator
-                    writer.Write(Config.isTestNet);
+                    writer.Write(CoreConfig.isTestNet);
 
                     // Send the node type
                     char node_type = 'C'; // This is a Client node
@@ -179,7 +179,7 @@ namespace S2
                     writer.Write(Config.version);
 
                     // Send the node device id
-                    writer.Write(Config.device_id);
+                    writer.Write(CoreConfig.device_id);
 
                     // Send the wallet public key
                     writer.Write(Node.walletStorage.getPrimaryPublicKey().Length);
@@ -193,7 +193,7 @@ namespace S2
                     writer.Write(timestamp);
 
                     // send signature
-                    byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
+                    byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(ConsensusConfig.ixianChecksumLockString + "-" + CoreConfig.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
                     writer.Write(signature.Length);
                     writer.Write(signature);
 

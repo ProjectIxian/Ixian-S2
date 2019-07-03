@@ -1,4 +1,5 @@
-﻿using Fclp;
+﻿using DLT.Network;
+using Fclp;
 using IXICore;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,16 @@ namespace DLT
         {
             // Providing pre-defined values
             // Can be read from a file later, or read from the command line
-            public static int serverPort = 10235;
-            public static int testnetServerPort = 11235;
+            private static int defaultServerPort = 10235;
+            private static int defaultTestnetServerPort = 11235;
+
             public static int apiPort = 8001;
             public static int testnetApiPort = 8101;
-            public static string publicServerIP = "127.0.0.1";
 
             public static Dictionary<string, string> apiUsers = new Dictionary<string, string>();
+
+            public static List<string> apiAllowedIps = new List<string>();
+            public static List<string> apiBinds = new List<string>();
 
             public static string configFilename = "ixian.cfg";
             public static string walletFile = "ixian.wal";
@@ -33,12 +37,10 @@ namespace DLT
             public static bool onlyShowAddresses = false;
 
             // Store the device id in a cache for reuse in later instances
-            public static string device_id = Guid.NewGuid().ToString();
             public static string externalIp = "";
 
             // Read-only values
             public static readonly string version = "xs2c-0.2.0-dev"; // S2 Node version
-            public static bool isTestNet = true; // Testnet designator
 
             public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
 
@@ -58,10 +60,14 @@ namespace DLT
             public static string dangerCommandlinePasswordCleartextUnsafe = "";
 
 
-            public static int forceTimeOffset = int.MaxValue;
-
             // internal
             public static bool changePass = false;
+
+            /// <summary>
+            /// Command to execute when a new block is accepted.
+            /// </summary>
+            public static string blockNotifyCommand = "";
+
 
             private Config()
             {
@@ -160,10 +166,10 @@ namespace DLT
                     switch (key)
                     {
                         case "s2Port":
-                            serverPort = int.Parse(value);
+                            Config.defaultServerPort = int.Parse(value);
                             break;
                         case "testnetS2Port":
-                            testnetServerPort = int.Parse(value);
+                            Config.defaultTestnetServerPort = int.Parse(value);
                             break;
                         case "apiPort":
                             apiPort = int.Parse(value);
@@ -179,7 +185,7 @@ namespace DLT
                             }
                             break;
                         case "externalIp":
-                            publicServerIP = value;
+                            externalIp = value;
                             break;
                         case "addPeer":
                             Network.CoreNetworkUtils.seedNodes.Add(new string[2] { value, null });
@@ -200,13 +206,13 @@ namespace DLT
                             }
                             break;
                         case "forceTimeOffset":
-                            forceTimeOffset = int.Parse(value);
+                            CoreConfig.forceTimeOffset = int.Parse(value);
                             break;
                         case "walletNotify":
                             CoreConfig.walletNotifyCommand = value;
                             break;
                         case "blockNotify":
-                            CoreConfig.blockNotifyCommand = value;
+                            Config.blockNotifyCommand = value;
                             break;
                         default:
                             // unknown key
@@ -241,15 +247,19 @@ namespace DLT
                 cmd_parser = new FluentCommandLineParser();
 
                 // testnet
-                cmd_parser.Setup<bool>('t', "testnet").Callback(value => isTestNet = true).Required();
+                cmd_parser.Setup<bool>('t', "testnet").Callback(value => CoreConfig.isTestNet = true).Required();
 
                 cmd_parser.Parse(args);
 
-                if (isTestNet)
+                if (CoreConfig.isTestNet)
                 {
-                    serverPort = testnetServerPort;
+                    NetworkServer.listeningPort = defaultTestnetServerPort;
                     apiPort = testnetApiPort;
                     PeerStorage.peersFilename = "testnet-peers.dat";
+                }
+                else
+                {
+                    NetworkServer.listeningPort = defaultServerPort;
                 }
 
 
@@ -271,7 +281,7 @@ namespace DLT
                 cmd_parser.Setup<bool>('c', "clean").Callback(value => start_clean = value).Required();
 
 
-                cmd_parser.Setup<int>('p', "port").Callback(value => serverPort = value).Required();
+                cmd_parser.Setup<int>('p', "port").Callback(value => NetworkServer.listeningPort = value).Required();
 
                 cmd_parser.Setup<int>('a', "apiport").Callback(value => apiPort = value).Required();
 
@@ -293,7 +303,7 @@ namespace DLT
                 // Debug
                 cmd_parser.Setup<string>("netdump").Callback(value => networkDumpFile = value).SetDefault("");
 
-                cmd_parser.Setup<int>("forceTimeOffset").Callback(value => forceTimeOffset = value).Required();
+                cmd_parser.Setup<int>("forceTimeOffset").Callback(value => CoreConfig.forceTimeOffset = value).Required();
 
                 cmd_parser.Setup<bool>("generateWallet").Callback(value => generateWalletOnly = value).SetDefault(false);
 
@@ -313,7 +323,7 @@ namespace DLT
 
                 if (seedNode != "")
                 {
-                    if (isTestNet)
+                    if (CoreConfig.isTestNet)
                     {
                         Network.CoreNetworkUtils.seedTestNetNodes = new List<string[]>
                         {
@@ -328,12 +338,6 @@ namespace DLT
                         };
                     }
                 }
-
-                // Log the parameters to notice any changes
-                Logging.log(LogSeverity.info, String.Format("S2 Server Port: {0}", serverPort));
-                Logging.log(LogSeverity.info, String.Format("S2 API Port: {0}", apiPort));
-                Logging.log(LogSeverity.info, String.Format("Wallet File: {0}", walletFile));
-
             }
 
         }

@@ -9,10 +9,10 @@ namespace S2
 {
     class APIServer : GenericAPIServer
     {
-        public APIServer()
+        public APIServer(List<string> listen_URLs, Dictionary<string, string> authorized_users = null, List<string> allowed_IPs = null)
         {
             // Start the API server
-            start(String.Format("http://localhost:{0}/", Config.apiPort));
+            start(listen_URLs, authorized_users, allowed_IPs);
         }
 
         protected override bool processRequest(HttpListenerContext context, string methodName, Dictionary<string, object> parameters)

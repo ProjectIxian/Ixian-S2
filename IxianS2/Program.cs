@@ -4,6 +4,8 @@ using System;
 using System.Timers;
 using System.Threading;
 using IXICore.Utils;
+using IXICore;
+using DLT.Network;
 
 namespace S2
 {
@@ -12,6 +14,8 @@ namespace S2
         private static System.Timers.Timer mainLoopTimer;
 
         public static bool noStart = false;
+
+        private static Node node = null;
         
         static void Main(string[] args)
         {
@@ -48,7 +52,7 @@ namespace S2
             bool verboseConsoleOutputSetting = ConsoleHelpers.verboseConsoleOutput;
             ConsoleHelpers.verboseConsoleOutput = true;
 
-            Console.WriteLine(string.Format("IXIAN S2 {0}", Config.version));
+            Console.WriteLine(string.Format("IXIAN S2 {0} ({1})", Config.version, CoreConfig.version));
 
             // Read configuration from command line
             Config.readFromCommandLine(args);
@@ -62,11 +66,11 @@ namespace S2
             // Set the logging options
             Logging.setOptions(Config.maxLogSize, Config.maxLogCount);
 
-            Logging.info(string.Format("Starting IXIAN S2 {0}", Config.version));
+            Logging.info(string.Format("Starting IXIAN S2 {0} ({1})", Config.version, CoreConfig.version));
 
             // Log the parameters to notice any changes
-            Logging.info(String.Format("Mainnet: {0}", !Config.isTestNet));
-            Logging.info(String.Format("Server Port: {0}", Config.serverPort));
+            Logging.info(String.Format("Mainnet: {0}", !CoreConfig.isTestNet));
+            Logging.info(String.Format("Server Port: {0}", NetworkServer.listeningPort));
             Logging.info(String.Format("API Port: {0}", Config.apiPort));
             Logging.info(String.Format("Wallet File: {0}", Config.walletFile));
 
@@ -74,10 +78,10 @@ namespace S2
             CryptoManager.initLib();
 
             // Initialize the node
-            Node.init();
+            node = new Node();
 
             // Start the actual S2 node
-            Node.start(verboseConsoleOutputSetting);
+            node.start(verboseConsoleOutputSetting);
 
             if (noStart)
             {

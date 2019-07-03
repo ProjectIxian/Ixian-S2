@@ -74,7 +74,6 @@ namespace DLT.Network
                                     int block_version = reader.ReadInt32();
 
                                     Node.setLastBlock(last_block_num, block_checksum, walletstate_checksum, block_version);
-                                    Node.setRequiredConsensus(consensus);
 
                                     // Check for legacy level
                                     ulong legacy_level = reader.ReadUInt64(); // deprecated
@@ -261,7 +260,7 @@ namespace DLT.Network
                                                 {
                                                     if (NetworkClientManager.getConnectedClients().Length < 2)
                                                     {
-                                                        Config.publicServerIP = byeData;
+                                                        NetworkClientManager.publicIP = byeData;
                                                         Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");
                                                     }
                                                 }
@@ -269,7 +268,7 @@ namespace DLT.Network
 
                                             case ProtocolByeCode.notConnectable: // not connectable from the internet
                                                 Logging.error("This node must be connectable from the internet, to connect to the network.");
-                                                Logging.error("Please setup uPNP and/or port forwarding on your router for port " + Config.serverPort + ".");
+                                                Logging.error("Please setup uPNP and/or port forwarding on your router for port " + NetworkServer.listeningPort + ".");
                                                 NetworkServer.connectable = false;
                                                 break;
 

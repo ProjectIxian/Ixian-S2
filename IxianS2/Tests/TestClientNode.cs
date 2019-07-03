@@ -55,7 +55,7 @@ namespace S2
         // Returns false if the wallet address could not be found in the Presence List
         static public bool addFriend(byte[] wallet)
         {
-            Presence presence = PresenceList.containsWalletAddress(wallet);
+            Presence presence = PresenceList.getPresenceByAddress(wallet);
             if (presence == null)
                 return false;
 
@@ -103,9 +103,9 @@ namespace S2
 
             // Generate the transaction
             Transaction transaction = new Transaction((int)Transaction.Type.Normal);
-            transaction.amount = CoreConfig.relayPriceInitial;
+            transaction.amount = ConsensusConfig.relayPriceInitial;
             transaction.toList.Add(friend.relayWallet, transaction.amount);
-            transaction.fee = CoreConfig.transactionPrice;
+            transaction.fee = ConsensusConfig.transactionPrice;
             transaction.fromList.Add(new byte[1] { 0 }, transaction.amount + transaction.fee);
             transaction.blockHeight = Node.blockHeight;
             transaction.pubKey = Node.walletStorage.getPrimaryPublicKey(); // TODO: check if it's in the walletstate already
