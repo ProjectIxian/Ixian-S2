@@ -15,6 +15,8 @@ namespace DLT
         {
             // Providing pre-defined values
             // Can be read from a file later, or read from the command line
+            public static int serverPort = 10235;
+
             private static int defaultServerPort = 10235;
             private static int defaultTestnetServerPort = 11235;
 
@@ -253,13 +255,13 @@ namespace DLT
 
                 if (CoreConfig.isTestNet)
                 {
-                    NetworkServer.listeningPort = defaultTestnetServerPort;
+                    Config.serverPort = defaultTestnetServerPort;
                     apiPort = testnetApiPort;
                     PeerStorage.peersFilename = "testnet-peers.dat";
                 }
                 else
                 {
-                    NetworkServer.listeningPort = defaultServerPort;
+                    Config.serverPort = defaultServerPort;
                 }
 
 
@@ -281,7 +283,7 @@ namespace DLT
                 cmd_parser.Setup<bool>('c', "clean").Callback(value => start_clean = value).Required();
 
 
-                cmd_parser.Setup<int>('p', "port").Callback(value => NetworkServer.listeningPort = value).Required();
+                cmd_parser.Setup<int>('p', "port").Callback(value => Config.serverPort = value).Required();
 
                 cmd_parser.Setup<int>('a', "apiport").Callback(value => apiPort = value).Required();
 

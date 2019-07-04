@@ -181,6 +181,11 @@ namespace DLT.Meta
 
             ActivityStorage.prepareStorage();
 
+            if (Config.apiBinds.Count == 0)
+            {
+                Config.apiBinds.Add("http://localhost:" + Config.apiPort + "/");
+            }
+
             // Start the HTTP JSON API server
             apiServer = new APIServer(Config.apiBinds, Config.apiUsers, Config.apiAllowedIps);
 
@@ -201,7 +206,7 @@ namespace DLT.Meta
             }
 
             // Start the node stream server
-            NetworkServer.beginNetworkOperations();
+            NetworkServer.beginNetworkOperations(Config.serverPort);
 
             // Start the network client manager
             NetworkClientManager.start();
