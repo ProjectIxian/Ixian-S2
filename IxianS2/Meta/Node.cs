@@ -174,6 +174,7 @@ namespace DLT.Meta
             // Network configuration
             NetworkUtils.configureNetwork(Config.externalIp);
 
+            // Generate presence list
             PresenceList.generatePresenceList(NetworkClientManager.publicIP, 'R');
 
             // Start the network queue

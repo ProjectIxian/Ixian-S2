@@ -125,14 +125,6 @@ namespace DLT.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.syncPresenceList:
-                        {
-                            byte[] pdata = PresenceList.getBytes();
-                            byte[] ba = CoreProtocolMessage.prepareProtocolMessage(ProtocolMessageCode.presenceList, pdata);
-                            endpoint.sendData(ProtocolMessageCode.presenceList, pdata);
-                        }
-                        break;
-
                     case ProtocolMessageCode.presenceList:
                         {
                             Logging.info("Receiving complete presence list");
@@ -151,7 +143,7 @@ namespace DLT.Network
                     case ProtocolMessageCode.keepAlivePresence:
                         {
                             byte[] address = null;
-                            bool updated = PresenceList.receiveKeepAlive(data, out address);
+                            bool updated = PresenceList.receiveKeepAlive(data, out address, endpoint);
 
                             // If a presence entry was updated, broadcast this message again
                             if (updated)
