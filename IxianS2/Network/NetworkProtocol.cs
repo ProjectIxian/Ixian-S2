@@ -1,14 +1,13 @@
-﻿using DLT.Meta;
-using IXICore;
+﻿using IXICore;
+using IXICore.Meta;
+using IXICore.Network;
 using IXICore.Utils;
-using S2;
-using S2.Network;
+using S2.Meta;
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 
-namespace DLT.Network
+namespace S2.Network
 {
     public class ProtocolMessage
     {

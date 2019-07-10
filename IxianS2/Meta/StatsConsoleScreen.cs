@@ -1,13 +1,11 @@
-﻿using DLT.Network;
+﻿using IXICore;
+using IXICore.Network;
 using IXICore.Utils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace DLT.Meta
+namespace S2.Meta
 {
     public class StatsConsoleScreen
     {

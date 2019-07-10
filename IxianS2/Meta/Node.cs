@@ -1,13 +1,12 @@
-﻿using DLT.Network;
-using IXICore;
+﻿using IXICore;
 using IXICore.Meta;
+using IXICore.Network;
 using IXICore.Utils;
-using S2;
 using S2.Network;
 using System;
 using System.Threading;
 
-namespace DLT.Meta
+namespace S2.Meta
 {
     class Node: IxianNode
     {

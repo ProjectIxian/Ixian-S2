@@ -1,7 +1,6 @@
-﻿using DLT;
-using DLT.Meta;
-using DLT.Network;
-using IXICore;
+﻿using IXICore;
+using IXICore.Meta;
+using IXICore.Network;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -186,7 +185,7 @@ namespace S2.Network
             message.sigdata = new byte[1];
             message.data = new byte[1];
 
-            NetworkServer.forwardMessage(recipient, DLT.Network.ProtocolMessageCode.s2data, message.getBytes());
+            NetworkServer.forwardMessage(recipient, ProtocolMessageCode.s2data, message.getBytes());
         }
     }
 }

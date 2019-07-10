@@ -1,12 +1,9 @@
-﻿using DLT;
-using DLT.Meta;
-using DLT.Network;
+﻿using IXICore.Meta;
+using IXICore.Network;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace S2
 {
