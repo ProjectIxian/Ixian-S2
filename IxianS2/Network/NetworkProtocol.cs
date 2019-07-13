@@ -6,11 +6,34 @@ using S2.Meta;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace S2.Network
 {
     public class ProtocolMessage
     {
+        public static ProtocolMessageCode waitingFor = 0;
+        public static bool blocked = false;
+
+        public static void setWaitFor(ProtocolMessageCode value)
+        {
+            waitingFor = value;
+            blocked = true;
+        }
+
+        public static void wait(int timeout_seconds)
+        {
+            DateTime start = DateTime.UtcNow;
+            while (blocked)
+            {
+                if ((DateTime.UtcNow - start).TotalSeconds > timeout_seconds)
+                {
+                    Logging.warn("Timeout occured while waiting for " + waitingFor);
+                }
+                Thread.Sleep(250);
+            }
+        }
+        
         // Unified protocol message parsing
         public static void parseProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint endpoint)
         {
@@ -164,25 +187,22 @@ namespace S2.Network
                                 {
                                     int walletLen = reader.ReadInt32();
                                     byte[] wallet = reader.ReadBytes(walletLen);
-                                    lock(PresenceList.presences)
+                                    Presence p = PresenceList.getPresenceByAddress(wallet);
+                                    if (p != null)
                                     {
-                                        // TODO re-verify this
-                                        Presence p = PresenceList.presences.Find(x => x.wallet.SequenceEqual(wallet));
-                                        if (p != null)
+                                        lock (p)
                                         {
                                             byte[][] presence_chunks = p.getByteChunks();
-                                            int i = 0;
                                             foreach (byte[] presence_chunk in presence_chunks)
                                             {
-                                                endpoint.sendData(ProtocolMessageCode.updatePresence, presence_chunk);
-                                                i++;
+                                                endpoint.sendData(ProtocolMessageCode.updatePresence, presence_chunk, null);
                                             }
                                         }
-                                        else
-                                        {
-                                            // TODO blacklisting point
-                                            Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
-                                        }
+                                    }
+                                    else
+                                    {
+                                        // TODO blacklisting point
+                                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
                                     }
                                 }
                             }

@@ -1,5 +1,6 @@
 ﻿using IXICore;
 using IXICore.Meta;
+using IXICore.Network;
 using S2.Meta;
 using System;
 using System.IO;
@@ -98,13 +99,14 @@ namespace S2
         // Retrieve the friend's connected S2 node address. Returns null if not found
         public string searchForRelay()
         {
-            string ip = null;
-            byte[] wallet = null;
+            string hostname = null;
             Presence presence = PresenceList.getPresenceByAddress(walletAddress);
             if (presence == null)
-                return ip;
+                return hostname;
 
-            lock (PresenceList.presences)
+            byte[] wallet = presence.wallet;
+
+            lock (presence)
             {
                 // Go through each presence address searching for C nodes
                 foreach (PresenceAddress addr in presence.addresses)
@@ -113,41 +115,35 @@ namespace S2
                     if (addr.type == 'C')
                     {
                         // We have a potential candidate here, store it
-                        string candidate_ip = addr.address;
+                        hostname = addr.address;
 
-                        // Go through each presence again. This should be more optimized.
-                        foreach (Presence s2presence in PresenceList.presences)
+                        string[] hostname_split = hostname.Split(':');
+
+                        if (hostname_split.Count() == 2 && NetworkUtils.validateIP(hostname_split[0]))
                         {
-                            // Go through each single address
-                            foreach (PresenceAddress s2addr in s2presence.addresses)
+                            // client is directly connectable
+                            break;
+                        }
+
+                        // find a relay node
+                        Presence s2presence = PresenceList.getPresenceByDeviceId(hostname);
+                        if (s2presence != null)
+                        {
+                            PresenceAddress s2addr = s2presence.addresses.Find(x => x.device == hostname);
+                            if (s2addr != null)
                             {
-                                // Only check Relay nodes that have the candidate ip
-                                if (s2addr.type == 'R' && s2addr.address.Equals(candidate_ip, StringComparison.Ordinal))
-                                {
-                                    // We found the friend's connected s2 node
-                                    ip = s2addr.address;
-                                    wallet = s2presence.wallet;
-                                    break;
-                                }
+                                // We found the friend's connected s2 node
+                                hostname = s2addr.address;
+                                wallet = s2presence.wallet;
+                                break;
                             }
                         }
                     }
-                    else
-                    // Check for R nodes for testing purposes
-                    if(addr.type == 'R')
-                    {
-                        ip = addr.address;
-                        wallet = presence.wallet;
-                    }
-
-                    // If we find a valid node ip, don't continue searching
-                    if (ip != null)
-                        break;
                 }
             }
 
             // Store the last relay ip and wallet for this friend
-            relayIP = ip;
+            relayIP = hostname;
             relayWallet = wallet;
 
             // Finally, return the ip address of the node
