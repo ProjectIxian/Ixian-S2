@@ -174,7 +174,7 @@ namespace S2.Meta
             NetworkUtils.configureNetwork(Config.externalIp);
 
             // Generate presence list
-            PresenceList.generatePresenceList(NetworkClientManager.publicIP, Config.serverPort, 'R');
+            PresenceList.generatePresenceList(IxianHandler.publicIP, Config.serverPort, 'R');
 
             // Start the network queue
             NetworkQueue.start();
@@ -321,11 +321,6 @@ namespace S2.Meta
                 return lastBlock.version;
             }
             return 0;
-        }
-
-        public override char getNodeType()
-        {
-            return 'R';
         }
 
         public override bool isAcceptingConnections()

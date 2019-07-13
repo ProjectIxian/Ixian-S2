@@ -251,7 +251,7 @@ namespace S2.Network
                                                 {
                                                     if (NetworkClientManager.getConnectedClients().Length < 2)
                                                     {
-                                                        NetworkClientManager.publicIP = byeData;
+                                                        IxianHandler.publicIP = byeData;
                                                         Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");
                                                     }
                                                 }
