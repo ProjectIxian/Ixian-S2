@@ -14,7 +14,8 @@ namespace S2.Meta
         private Thread thread = null;
         private bool running = false;
 
-        private int consoleWidth = 50;
+        private int consoleWidth = 55;
+        private uint drawCycle = 0; // Keep a count of screen draw cycles as a basic method of preventing visual artifacts
 
         public StatsConsoleScreen()
         {
@@ -25,9 +26,10 @@ namespace S2.Meta
             // Start thread
             running = true;
             thread = new Thread(new ThreadStart(threadLoop));
+            thread.Name = "Stats_Console_Thread";
             thread.Start();
 
-            startTime = DateTime.Now;
+            startTime = DateTime.UtcNow;
         }
 
         // Shutdown console thread
@@ -41,10 +43,21 @@ namespace S2.Meta
             while (running)
             {
                 if (ConsoleHelpers.verboseConsoleOutput == false)
-                    drawScreen();
+                {
+                    // Clear the screen every 10 seconds to prevent any persisting visual artifacts
+                    if (drawCycle > 5)
+                    {
+                        clearScreen();
+                        drawCycle = 0;
+                    }
+                    else
+                    {
+                        drawScreen();
+                        drawCycle++;
+                    }
+                }
 
                 Thread.Sleep(2000);
-                Thread.Yield();
             }
         }
 
@@ -59,64 +72,85 @@ namespace S2.Meta
         {
             Console.SetCursorPosition(0, 0);
 
+            string server_version = "(";//checkForUpdate();
+            bool update_avail = false;
+            if (!server_version.StartsWith("("))
+            {
+                if (server_version != Config.version)
+                {
+                    update_avail = true;
+                }
+            }
 
+            int connectionsOut = NetworkClientManager.getConnectedClients(true).Count();
+            int connectionsIn = NetworkServer.getConnectedClients().Count();
 
-            writeLine("  _______   _______          _   _    _____ ___  ");
-            writeLine(" |_   _\\ \\ / /_   _|   /\\   | \\ | |  / ____|__ \\ ");
-            writeLine("   | |  \\ V /  | |    /  \\  |  \\| | | (___    ) |");
-            writeLine("   | |   > <   | |   / /\\ \\ | . ` |  \\___ \\  / / ");
-            writeLine("  _| |_ / . \\ _| |_ / ____ \\| |\\  |  ____) |/ /_ ");
-            writeLine(" |_____/_/ \\_\\_____/_/    \\_\\_| \\_| |_____/|____|");
-            writeLine(" {0} ", ("" + Config.version).PadLeft(48));
-            writeLine(" http://localhost:{0}/                       ", Config.apiPort);
-            writeLine("──────────────────────────────────────────────────");
+            writeLine(" ██╗██╗  ██╗██╗ █████╗ ███╗   ██╗    ███████╗██████╗  ");
+            writeLine(" ██║╚██╗██╔╝██║██╔══██╗████╗  ██║    ██╔════╝╚════██╗ ");
+            writeLine(" ██║ ╚███╔╝ ██║███████║██╔██╗ ██║    ███████╗ █████╔╝ ");
+            writeLine(" ██║ ██╔██╗ ██║██╔══██║██║╚██╗██║    ╚════██║██╔═══╝  ");
+            writeLine(" ██║██╔╝ ██╗██║██║  ██║██║ ╚████║    ███████║███████╗ ");
+            writeLine(" ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝    ╚══════╝╚══════╝ ");
+            writeLine(" {0}", (Config.version + " BETA ").PadLeft(53));
+            writeLine(" {0}", ("http://localhost:" + Config.apiPort + "/"));
+            writeLine("──────────────────────────────────────────────────────");
+            if (update_avail)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                writeLine(" An update (" + server_version + ") of Ixian S2 is available");
+                writeLine(" Please visit https://www.ixian.io");
+                Console.ResetColor();
+            }
+            else
+            {
+                if (!NetworkServer.isConnectable() && connectionsOut == 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    writeLine(" Your node isn't connectable from the internet.");
+                    writeLine(" Please set-up port forwarding for port " + NetworkServer.getListeningPort() + ". ");
+                    writeLine(" Make sure you can connect to: " + NetworkServer.getFullPublicAddress());
+                    Console.ResetColor();
+                }
+                else
+                {
+                    writeLine(" Thank you for running an Ixian S2 node.");
+                    writeLine(" For help please visit https://www.ixian.io");
+                }
+            }
+            writeLine("──────────────────────────────────────────────────────");
 
-            writeLine(" Thank you for running an Ixian S2 node.\n For help please visit www.ixian.io");
-            writeLine("──────────────────────────────────────────────────\n");
-
-
-            /*
-                        if (Node.serverStarted == false)
-                        {
-                            return;
-                        }*/
 
             // Node status
-            string dltStatus = "active       ";
+            Console.Write(" Status:               ");
 
-            int connectionsIn = 0;
+            string dltStatus = "active";
+
 
             string connectionsInStr = "-";  // Default to no inbound connections accepted
             if (NetworkServer.isRunning())
             {
                 // If the server is running, show the number of inbound connections
-                connectionsIn = NetworkServer.getConnectedClients().Count();
-                if (!NetworkServer.isConnectable())
-                {
-                    connectionsInStr = "Not connectable";
-                }
-                else
-                {
-                    connectionsInStr = String.Format("{0}", connectionsIn);
-                }
+                connectionsInStr = String.Format("{0}", connectionsIn);
             }
 
-            int connectionsOut = NetworkClientManager.getConnectedClients().Count();
             if (connectionsIn + connectionsOut < 1)
                 dltStatus = "connecting   ";
 
+            writeLine(dltStatus);
+            Console.ResetColor();
 
-            writeLine("\tStatus:\t\t{0}\n", dltStatus);
-            writeLine("\tConnections (I/O):\t{0}", connectionsInStr + "/" + connectionsOut);
-            writeLine("\tPresences:\t\t{0}", PresenceList.getTotalPresences());
+            writeLine("");
 
-            writeLine("\n──────────────────────────────────────────────────");
+            writeLine(" Connections (I/O):    {0}", connectionsInStr + "/" + connectionsOut);
+            writeLine(" Presences:            {0}", PresenceList.getTotalPresences());
+            
+            writeLine("──────────────────────────────────────────────────────");
 
-            TimeSpan elapsed = DateTime.Now - startTime;
+            TimeSpan elapsed = DateTime.UtcNow - startTime;
 
             writeLine(" Running for {0} days {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
             writeLine("");
-            writeLine(" Press V to toggle stats. Ctrl-C to exit.");
+            writeLine(" Press V to toggle stats. Esc key to exit.");
 
         }
 

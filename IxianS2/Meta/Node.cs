@@ -22,8 +22,6 @@ namespace S2.Meta
         public static IxiNumber balance = 0;      // Stores the last known balance for this node
         public static ulong blockHeight = 0;
 
-        public static bool forceShutdown = false;
-
         // Private data
         static Block lastBlock = null;
 
@@ -41,9 +39,10 @@ namespace S2.Meta
         // Perform basic initialization of node
         private void init()
         {
-
-
             running = true;
+
+            // Network configuration
+            NetworkUtils.configureNetwork(Config.externalIp, Config.apiPort);
 
             // Load or Generate the wallet
             if (!initWallet())
@@ -83,7 +82,7 @@ namespace S2.Meta
                 {
                     Logging.flush();
                     password = ConsoleHelpers.requestNewPassword("Enter a password for your new wallet: ");
-                    if (forceShutdown)
+                    if (IxianHandler.forceShutdown)
                     {
                         return false;
                     }
@@ -111,7 +110,7 @@ namespace S2.Meta
                         Console.Write("Enter wallet password: ");
                         password = ConsoleHelpers.getPasswordInput();
                     }
-                    if (forceShutdown)
+                    if (IxianHandler.forceShutdown)
                     {
                         return false;
                     }
@@ -154,7 +153,7 @@ namespace S2.Meta
                 while (new_password.Length < 10)
                 {
                     new_password = ConsoleHelpers.requestNewPassword("Enter a new password for your wallet: ");
-                    if (forceShutdown)
+                    if (IxianHandler.forceShutdown)
                     {
                         return false;
                     }
@@ -170,11 +169,8 @@ namespace S2.Meta
 
         public void start(bool verboseConsoleOutput)
         {
-            // Network configuration
-            NetworkUtils.configureNetwork(Config.externalIp);
-
             // Generate presence list
-            PresenceList.generatePresenceList(IxianHandler.publicIP, Config.serverPort, 'R');
+            PresenceList.init(IxianHandler.publicIP, Config.serverPort, 'R');
 
             // Start the network queue
             NetworkQueue.start();
@@ -236,8 +232,7 @@ namespace S2.Meta
         static public void stop()
         {
             Program.noStart = true;
-            forceShutdown = true;
-            ConsoleHelpers.forceShutdown = true;
+            IxianHandler.forceShutdown = true;
 
             // Stop the keepalive thread
             PresenceList.stopKeepAlive();
@@ -364,7 +359,7 @@ namespace S2.Meta
 
         public override void shutdown()
         {
-            forceShutdown = true;
+            IxianHandler.forceShutdown = true;
         }
 
         public override WalletStorage getWalletStorage()

@@ -249,7 +249,7 @@ namespace S2.Network
                                             case ProtocolByeCode.incorrectIp: // incorrect IP
                                                 if (IxiUtils.validateIPv4(byeData))
                                                 {
-                                                    if (NetworkClientManager.getConnectedClients().Length < 2)
+                                                    if (NetworkClientManager.getConnectedClients(true).Count() < 2)
                                                     {
                                                         IxianHandler.publicIP = byeData;
                                                         Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");

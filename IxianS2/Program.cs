@@ -158,14 +158,14 @@ namespace S2
                 ConsoleHelpers.verboseConsoleOutput = true;
                 Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
                 e.Cancel = true;
-                Node.forceShutdown = true;
+                IxianHandler.forceShutdown = true;
             };
 
             onStart(args);
 
             if (Node.apiServer != null)
             {
-                while (Node.forceShutdown == false)
+                while (IxianHandler.forceShutdown == false)
                 {
                     Thread.Sleep(1000);
                 }
@@ -222,14 +222,14 @@ namespace S2
             // Initialize the node
             node = new Node();
 
-            // Start the actual S2 node
-            node.start(verboseConsoleOutputSetting);
-
             if (noStart)
             {
                 Thread.Sleep(1000);
                 return;
             }
+
+            // Start the actual S2 node
+            node.start(verboseConsoleOutputSetting);
 
             // Setup a timer to handle routine updates
             mainLoopTimer = new System.Timers.Timer(1000);
@@ -264,13 +264,13 @@ namespace S2
                 {
                     ConsoleHelpers.verboseConsoleOutput = true;
                     Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
-                    Node.forceShutdown = true;
+                    IxianHandler.forceShutdown = true;
                 }
 
             }
             if (Node.update() == false)
             {
-                Node.forceShutdown = true;
+                IxianHandler.forceShutdown = true;
             }
         }
 
