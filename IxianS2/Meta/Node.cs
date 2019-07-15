@@ -202,7 +202,7 @@ namespace S2.Meta
             }
 
             // Start the node stream server
-            NetworkServer.beginNetworkOperations(Config.serverPort);
+            NetworkServer.beginNetworkOperations();
 
             // Start the network client manager
             NetworkClientManager.start();

@@ -269,7 +269,7 @@ namespace S2.Network
                                             case ProtocolByeCode.incorrectIp: // incorrect IP
                                                 if (IxiUtils.validateIPv4(byeData))
                                                 {
-                                                    if (NetworkClientManager.getConnectedClients(true).Count() < 2)
+                                                    if (NetworkClientManager.getConnectedClients(true).Length < 2)
                                                     {
                                                         IxianHandler.publicIP = byeData;
                                                         Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");
@@ -279,7 +279,7 @@ namespace S2.Network
 
                                             case ProtocolByeCode.notConnectable: // not connectable from the internet
                                                 Logging.error("This node must be connectable from the internet, to connect to the network.");
-                                                Logging.error("Please setup uPNP and/or port forwarding on your router for port " + NetworkServer.getListeningPort() + ".");
+                                                Logging.error("Please setup uPNP and/or port forwarding on your router for port " + IxianHandler.publicPort + ".");
                                                 NetworkServer.connectable = false;
                                                 break;
 
