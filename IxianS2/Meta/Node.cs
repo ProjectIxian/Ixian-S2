@@ -42,7 +42,7 @@ namespace S2.Meta
             running = true;
 
             // Network configuration
-            NetworkUtils.configureNetwork(Config.externalIp, Config.apiPort);
+            NetworkUtils.configureNetwork(Config.externalIp, Config.serverPort);
 
             // Load or Generate the wallet
             if (!initWallet())
