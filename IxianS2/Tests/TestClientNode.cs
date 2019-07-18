@@ -71,7 +71,8 @@ namespace S2
         // Sends a test message to a specified friend
         static public bool sendTestMessage(TestFriend friend)
         {
-            // Search for the relay ip
+            return false;
+            /*// Search for the relay ip
             string relayip = friend.searchForRelay();
 
             if (relayip == null)
@@ -118,15 +119,15 @@ namespace S2
 
             // Encrypt the message
             byte[] text_message = Encoding.UTF8.GetBytes("Hello Ixian World!");
-            message.encryptMessage(text_message, friend.aesPassword, friend.chachaKey);
+            message.encrypt(friend.publicKey, friend.aesKey, friend.chachaKey);
 
             // Encrypt the transaction signature
             byte[] tx_signature = transaction.getSignature(transaction.checksum);
-            message.encryptSignature(tx_signature, friend.aesPassword, friend.chachaKey);
+            message.encryptSignature(tx_signature, friend.aesKey, friend.chachaKey);
 
             stream_client.sendData(ProtocolMessageCode.s2data, message.getBytes());
-
-            return true;
+            
+            return true; */
         }
 
 
