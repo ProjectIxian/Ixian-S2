@@ -40,7 +40,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.2.0-dev"; // S2 Node version
+        public static readonly string version = "xs2c-0.2.0"; // S2 Node version
 
         public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
 
@@ -255,7 +255,7 @@ namespace S2.Meta
             {
                 Config.serverPort = defaultTestnetServerPort;
                 apiPort = testnetApiPort;
-                PeerStorage.peersFilename = "testnet-peers.dat";
+                PeerStorage.init("testnet-peers.dat");
             }
             else
             {
