@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace S2.Meta
 {
@@ -40,7 +41,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.2.0"; // S2 Node version
+        public static readonly string version = "xs2c-0.2.0a"; // S2 Node version
 
         public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
 
@@ -255,11 +256,12 @@ namespace S2.Meta
             {
                 Config.serverPort = defaultTestnetServerPort;
                 apiPort = testnetApiPort;
-                PeerStorage.init("testnet-peers.dat");
+                PeerStorage.init(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "testnet-peers.dat");
             }
             else
             {
                 Config.serverPort = defaultServerPort;
+                PeerStorage.init(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
             }
 
 

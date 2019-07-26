@@ -5,6 +5,7 @@ using S2.Meta;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Timers;
 
@@ -152,7 +153,7 @@ namespace S2
             IXICore.Utils.ConsoleHelpers.prepareWindowsConsole();
 
             // Start logging
-            Logging.start();
+            Logging.start(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
 
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
                 ConsoleHelpers.verboseConsoleOutput = true;
