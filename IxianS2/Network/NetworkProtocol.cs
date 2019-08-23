@@ -147,12 +147,12 @@ namespace S2.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.presenceList:
+                    /*case ProtocolMessageCode.presenceList:
                         {
                             Logging.info("Receiving complete presence list");
                             PresenceList.syncFromBytes(data);
                         }
-                        break;
+                        break;*/
 
                     case ProtocolMessageCode.updatePresence:
                         {
@@ -166,16 +166,6 @@ namespace S2.Network
                         {
                             byte[] address = null;
                             bool updated = PresenceList.receiveKeepAlive(data, out address, endpoint);
-
-                            // If a presence entry was updated, broadcast this message again
-                            if (updated)
-                            {
-                                CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'R', 'H', 'W' }, ProtocolMessageCode.keepAlivePresence, data, address, endpoint);
-
-                                // Send this keepalive message to all connected clients
-                                CoreProtocolMessage.broadcastEventDataMessage(NetworkEvents.Type.keepAlive, address, ProtocolMessageCode.keepAlivePresence, data, address, endpoint);
-                            }
-
                         }
                         break;
 

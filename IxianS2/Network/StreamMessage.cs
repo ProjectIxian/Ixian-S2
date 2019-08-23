@@ -87,6 +87,9 @@ namespace S2
                         int sig_length = reader.ReadInt32();
                         if (sig_length > 0)
                             sigdata = reader.ReadBytes(sig_length);
+
+                        encrypted = reader.ReadBoolean();
+                        sigEncrypted = reader.ReadBoolean();
                     }
                 }
             }
@@ -111,52 +114,65 @@ namespace S2
                     writer.Write((int)encryptionType);
 
                     // Write the sender
-                    int sender_length = sender.Length;
-                    writer.Write(sender_length);
-
-                    if (sender_length > 0)
+                    if (sender != null)
+                    {
+                        writer.Write(sender.Length);
                         writer.Write(sender);
+                    }
                     else
+                    {
                         writer.Write(0);
+                    }
 
 
                     // Write the recipient
-                    int recipient_length = recipient.Length;
-                    writer.Write(recipient_length);
-
-                    if (recipient_length > 0)
+                    if (recipient != null)
+                    {
+                        writer.Write(recipient.Length);
                         writer.Write(recipient);
+                    }
                     else
+                    {
                         writer.Write(0);
+                    }
 
 
                     // Write the data
-                    int data_length = data.Length;
-                    writer.Write(data_length);
-
-                    if (data_length > 0)
+                    if (data != null)
+                    {
+                        writer.Write(data.Length);
                         writer.Write(data);
+                    }
                     else
+                    {
                         writer.Write(0);
+                    }
 
                     // Write the tx
-                    int tx_length = transaction.Length;
-                    writer.Write(tx_length);
-
-                    if (tx_length > 0)
+                    if (transaction != null)
+                    {
+                        writer.Write(transaction.Length);
                         writer.Write(transaction);
+                    }
                     else
+                    {
                         writer.Write(0);
+                    }
 
 
                     // Write the sig
-                    int sig_length = sigdata.Length;
-                    writer.Write(sig_length);
-
-                    if (sig_length > 0)
+                    if (sigdata != null)
+                    {
+                        writer.Write(sigdata.Length);
                         writer.Write(sigdata);
+                    }
                     else
+                    {
                         writer.Write(0);
+                    }
+
+                    writer.Write(encrypted);
+                    writer.Write(sigEncrypted);
 
                 }
                 return m.ToArray();
@@ -188,15 +204,10 @@ namespace S2
 
         public bool decrypt(byte[] private_key, byte[] aes_key, byte[] chacha_key)
         {
-            if (sigEncrypted)
-            {
-                return true;
-            }
             byte[] decrypted_data = _decrypt(data, private_key, aes_key, chacha_key);
             if (decrypted_data != null)
             {
                 data = decrypted_data;
-                sigEncrypted = true;
                 return true;
             }
             return false;
@@ -205,10 +216,15 @@ namespace S2
         // Encrypts a provided signature with aes, then chacha based on the keys provided
         public bool encryptSignature(byte[] public_key, byte[] aes_password, byte[] chacha_key)
         {
+            if (sigEncrypted)
+            {
+                return true;
+            }
             byte[] encrypted_data = _encrypt(sigdata, public_key, aes_password, chacha_key);
             if (encrypted_data != null)
             {
                 sigdata = encrypted_data;
+                sigEncrypted = true;
                 return true;
             }
             return false;
@@ -231,8 +247,8 @@ namespace S2
             {
                 if (aes_key != null && chacha_key != null)
                 {
-                    byte[] aes_encrypted = CryptoManager.lib.decryptDataAES(data_to_encrypt, aes_key);
-                    byte[] chacha_encrypted = CryptoManager.lib.decryptWithChacha(aes_encrypted, chacha_key);
+                    byte[] aes_encrypted = CryptoManager.lib.encryptWithAES(data_to_encrypt, aes_key, true);
+                    byte[] chacha_encrypted = CryptoManager.lib.encryptWithChacha(aes_encrypted, chacha_key);
                     return chacha_encrypted;
                 }
                 else
@@ -244,7 +260,7 @@ namespace S2
             {
                 if (public_key != null)
                 {
-                    return CryptoManager.lib.decryptWithRSA(data_to_encrypt, public_key);
+                    return CryptoManager.lib.encryptWithRSA(data_to_encrypt, public_key);
                 }
                 else
                 {
@@ -265,7 +281,7 @@ namespace S2
                 if (aes_key != null && chacha_key != null)
                 {
                     byte[] chacha_decrypted = CryptoManager.lib.decryptWithChacha(data_to_decrypt, chacha_key);
-                    byte[] aes_decrypted = CryptoManager.lib.decryptDataAES(chacha_decrypted, aes_key);
+                    byte[] aes_decrypted = CryptoManager.lib.decryptWithAES(chacha_decrypted, aes_key, true);
                     return aes_decrypted;
                 }
                 else
@@ -286,7 +302,7 @@ namespace S2
             }
             else
             {
-                Logging.error("Cannot decrypt message, invalid encryption type {0} was specified.", encryptionType);
+                Logging.error("Cannot decrypt message, invalid decryption type {0} was specified.", encryptionType);
             }
             return null;
         }
