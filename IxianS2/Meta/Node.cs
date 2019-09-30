@@ -12,7 +12,6 @@ namespace S2.Meta
     {
         // Public
         public static WalletStorage walletStorage;
-        public static WalletState walletState;
 
         public static APIServer apiServer;
 
@@ -54,9 +53,6 @@ namespace S2.Meta
 
             // Setup the stats console
             statsConsoleScreen = new StatsConsoleScreen();
-
-            // Initialize the wallet state
-            walletState = new WalletState();
         }
 
         private bool initWallet()
