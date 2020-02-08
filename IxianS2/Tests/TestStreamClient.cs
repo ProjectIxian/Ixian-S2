@@ -186,7 +186,7 @@ namespace S2
                     writer.Write(0);
 
                     // Send timestamp
-                    long timestamp = Core.getCurrentTimestamp();
+                    long timestamp = Clock.getNetworkTimestamp();
                     writer.Write(timestamp);
 
                     // send signature

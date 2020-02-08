@@ -38,7 +38,7 @@ namespace S2.Network
             {
                 Quota quota = quotas[wallet];
 
-                if (Core.getCurrentTimestamp() - quota.lastPaidTime > Config.lastPaidTimeQuota)
+                if (Clock.getTimestamp() - quota.lastPaidTime > Config.lastPaidTimeQuota)
                 {
                     if (quota.infoMessages > Config.infoMessageQuota)
                     {
@@ -60,7 +60,7 @@ namespace S2.Network
         public static bool addActivity(byte[] wallet, bool info = true)
         {
             Quota quota = null;
-            long current_timestamp = Core.getCurrentTimestamp();
+            long current_timestamp = Clock.getTimestamp();
 
             lock (quotas)
             {
@@ -108,7 +108,7 @@ namespace S2.Network
                 if (quota == null)
                     return false;
 
-                long current_timestamp = Core.getCurrentTimestamp();
+                long current_timestamp = Clock.getTimestamp();
 
                 // Reset quotas for this wallet
                 quota.lastActivityTime = current_timestamp;
