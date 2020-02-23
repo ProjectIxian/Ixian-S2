@@ -83,7 +83,7 @@ namespace S2.Meta
             Console.WriteLine("");
             Console.WriteLine(" IxianS2.exe [-h] [-v] [-t] [-x] [-c] [-p 10234] [-a 8081] [-i ip] [-w ixian.wal] [-n seed1.ixian.io:10234]");
             Console.WriteLine(" [--config ixian.cfg] [--maxLogSize 50] [--maxLogCount 10] [--disableWebStart] [--netdump] [--forceTimeOffset 0]");
-            Console.WriteLine(" [--verifyStorage] [--generateWallet] [--walletPassword]");
+            Console.WriteLine(" [--generateWallet] [--walletPassword]");
             Console.WriteLine("");
             Console.WriteLine("    -h\t\t\t Displays this help");
             Console.WriteLine("    -v\t\t\t Displays version");

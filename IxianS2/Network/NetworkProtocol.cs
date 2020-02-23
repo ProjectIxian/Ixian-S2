@@ -29,6 +29,7 @@ namespace S2.Network
                 if ((DateTime.UtcNow - start).TotalSeconds > timeout_seconds)
                 {
                     Logging.warn("Timeout occured while waiting for " + waitingFor);
+                    break;
                 }
                 Thread.Sleep(250);
             }
@@ -95,8 +96,6 @@ namespace S2.Network
 
                                     int block_version = reader.ReadInt32();
 
-                                    Node.setLastBlock(last_block_num, block_checksum, walletstate_checksum, block_version);
-
                                     // Check for legacy level
                                     ulong legacy_level = reader.ReadUInt64(); // deprecated
 
@@ -111,6 +110,13 @@ namespace S2.Network
                                     // Process the hello data
                                     endpoint.helloReceived = true;
                                     NetworkClientManager.recalculateLocalTimeDifference();
+
+                                    Node.setNetworkBlock(last_block_num, block_checksum, block_version);
+
+                                    // Get random presences
+                                    endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'M' });
+
+                                    CoreProtocolMessage.subscribeToEvents(endpoint);
                                 }
                             }
                         }
@@ -144,6 +150,15 @@ namespace S2.Network
                         {
                             // Forward the new transaction message to the DLT network
                             CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, data, null);
+
+                            Transaction tx = new Transaction(data, true);
+
+                            PendingTransactions.increaseReceivedCount(tx.id);
+
+                            Node.tiv.receivedNewTransaction(tx);
+                            Logging.info("Received new transaction {0}", tx.id);
+
+                            Node.addTransactionToActivityStorage(tx);
                         }
                         break;
 
@@ -200,9 +215,9 @@ namespace S2.Network
                         break;
 
 
+
                     case ProtocolMessageCode.balance:
                         {
-                            // TODO: make sure this is received from a DLT node only.
                             using (MemoryStream m = new MemoryStream(data))
                             {
                                 using (BinaryReader reader = new BinaryReader(m))
@@ -215,12 +230,20 @@ namespace S2.Network
 
                                     if (address.SequenceEqual(Node.walletStorage.getPrimaryAddress()))
                                     {
-                                        Node.balance = balance;
-                                    }
+                                        // Retrieve the blockheight for the balance
+                                        ulong block_height = reader.ReadUInt64();
 
-                                    // Retrieve the blockheight for the balance
-                                    ulong blockheight = reader.ReadUInt64();
-                                    Node.blockHeight = blockheight;
+                                        if (block_height > Node.balance.blockHeight && (Node.balance.balance != balance || Node.balance.blockHeight == 0))
+                                        {
+                                            byte[] block_checksum = reader.ReadBytes(reader.ReadInt32());
+
+                                            Node.balance.address = address;
+                                            Node.balance.balance = balance;
+                                            Node.balance.blockHeight = block_height;
+                                            Node.balance.blockChecksum = block_checksum;
+                                            Node.balance.verified = false;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -310,6 +333,19 @@ namespace S2.Network
                             {
                                 TestClientNode.handleExtendProtocol(data);
                             }
+                        }
+                        break;
+
+                    case ProtocolMessageCode.blockHeaders:
+                        {
+                            // Forward the block headers to the TIV handler
+                            Node.tiv.receivedBlockHeaders(data, endpoint);
+                        }
+                        break;
+
+                    case ProtocolMessageCode.pitData:
+                        {
+                            Node.tiv.receivedPIT(data, endpoint);
                         }
                         break;
 

@@ -233,7 +233,7 @@ namespace S2
             node.start(verboseConsoleOutputSetting);
 
             // Setup a timer to handle routine updates
-            mainLoopTimer = new System.Timers.Timer(1000);
+            mainLoopTimer = new System.Timers.Timer(2000);
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
             mainLoopTimer.Start();
 

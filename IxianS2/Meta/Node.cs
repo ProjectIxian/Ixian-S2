@@ -4,11 +4,25 @@ using IXICore.Network;
 using IXICore.Utils;
 using S2.Network;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Text;
 using System.Threading;
 
 namespace S2.Meta
 {
-    class Node: IxianNode
+    class Balance
+    {
+        public byte[] address = null;
+        public IxiNumber balance = 0;
+        public ulong blockHeight = 0;
+        public byte[] blockChecksum = null;
+        public bool verified = false;
+    }
+
+    class Node : IxianNode
     {
         // Public
         public static WalletStorage walletStorage;
@@ -18,15 +32,18 @@ namespace S2.Meta
         public static StatsConsoleScreen statsConsoleScreen = null;
 
 
-        public static IxiNumber balance = 0;      // Stores the last known balance for this node
-        public static ulong blockHeight = 0;
+        public static Balance balance = new Balance();      // Stores the last known balance for this node
+
+        public static TransactionInclusion tiv = null;
 
         // Private data
-        static Block lastBlock = null;
-
         private static Thread maintenanceThread;
 
-        public static bool running = false;
+        private static bool running = false;
+
+        private static ulong networkBlockHeight = 0;
+        private static byte[] networkBlockChecksum = null;
+        private static int networkBlockVersion = 0;
 
         public Node()
         {
@@ -53,6 +70,9 @@ namespace S2.Meta
 
             // Setup the stats console
             statsConsoleScreen = new StatsConsoleScreen();
+
+            // Start TIV
+            tiv = new TransactionInclusion();
         }
 
         private bool initWallet()
@@ -222,6 +242,18 @@ namespace S2.Meta
                 TestClientNode.update();
             }
 
+            // Temporary until the DLT 0.6.7a upgrade
+            // Request wallet balance
+            using (MemoryStream mw = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(mw))
+                {
+                    writer.Write(Node.walletStorage.getPrimaryAddress().Length);
+                    writer.Write(Node.walletStorage.getPrimaryAddress());
+                    NetworkClientManager.broadcastData(new char[] { 'M' }, ProtocolMessageCode.getBalance, mw.ToArray(), null);
+                }
+            }
+
             return running;
         }
 
@@ -229,6 +261,9 @@ namespace S2.Meta
         {
             Program.noStart = true;
             IxianHandler.forceShutdown = true;
+
+            // Stop TIV
+            tiv.stop();
 
             // Stop the keepalive thread
             PresenceList.stopKeepAlive();
@@ -295,62 +330,122 @@ namespace S2.Meta
             }
         }
 
-        public override ulong getLastBlockHeight()
-        {
-            return blockHeight;
-        }
-
-        public override ulong getHighestKnownNetworkBlockHeight()
-        {
-            return getLastBlockHeight();
-        }
-
-        public override int getLastBlockVersion()
-        {
-            if (lastBlock != null)
-            {
-                return lastBlock.version;
-            }
-            return 0;
-        }
-
         public override bool isAcceptingConnections()
         {
             // TODO TODO TODO TODO implement this properly
             return true;
         }
 
-        public static void setLastBlock(ulong block_num, byte[] checksum, byte[] ws_checksum, int version)
+
+        static public void setNetworkBlock(ulong block_height, byte[] block_checksum, int block_version)
         {
-            Block b = new Block();
-            b.blockNum = block_num;
-            b.blockChecksum = checksum;
-            b.walletStateChecksum = ws_checksum;
-            b.version = version;
-
-            lastBlock = b;
-
-            blockHeight = block_num;
+            networkBlockHeight = block_height;
+            networkBlockChecksum = block_checksum;
+            networkBlockVersion = block_version;
         }
 
-        public override Block getLastBlock()
+        public override void receivedTransactionInclusionVerificationResponse(string txid, bool verified)
         {
-            return lastBlock;
+            // TODO implement error
+            // TODO implement blocknum
+
+            ActivityStatus status = ActivityStatus.Pending;
+            if (verified)
+            {
+                status = ActivityStatus.Final;
+                PendingTransactions.remove(txid);
+            }
+
+            ActivityStorage.updateStatus(Encoding.UTF8.GetBytes(txid), status, 0);
+        }
+
+        public override void receivedBlockHeader(BlockHeader block_header, bool verified)
+        {
+            if (balance.blockChecksum != null && balance.blockChecksum.SequenceEqual(block_header.blockChecksum))
+            {
+                balance.verified = true;
+            }
+            if (block_header.blockNum >= networkBlockHeight)
+            {
+                IxianHandler.status = NodeStatus.ready;
+                setNetworkBlock(block_header.blockNum, block_header.blockChecksum, block_header.version);
+            }
+            processPendingTransactions();
+        }
+
+        public override ulong getLastBlockHeight()
+        {
+            if (tiv.getLastBlockHeader() == null)
+            {
+                return 0;
+            }
+            return tiv.getLastBlockHeader().blockNum;
+        }
+
+        public override ulong getHighestKnownNetworkBlockHeight()
+        {
+            return networkBlockHeight;
+        }
+
+        public override int getLastBlockVersion()
+        {
+            if (tiv.getLastBlockHeader() == null)
+            {
+                return BlockVer.v6;
+            }
+            if (tiv.getLastBlockHeader().version < BlockVer.v6)
+            {
+                return BlockVer.v6;
+            }
+            return tiv.getLastBlockHeader().version;
         }
 
         public override bool addTransaction(Transaction tx)
         {
-            throw new NotImplementedException();
+            PendingTransactions.addPendingLocalTransaction(tx);
+            return true;
+        }
+
+        public override Block getLastBlock()
+        {
+            // TODO handle this more elegantly
+            BlockHeader bh = tiv.getLastBlockHeader();
+            return new Block()
+            {
+                blockNum = bh.blockNum,
+                blockChecksum = bh.blockChecksum,
+                lastBlockChecksum = bh.lastBlockChecksum,
+                lastSuperBlockChecksum = bh.lastSuperBlockChecksum,
+                lastSuperBlockNum = bh.lastSuperBlockNum,
+                difficulty = bh.difficulty,
+                superBlockSegments = bh.superBlockSegments,
+                timestamp = bh.timestamp,
+                transactions = bh.transactions,
+                version = bh.version,
+                walletStateChecksum = bh.walletStateChecksum,
+                signatureFreezeChecksum = bh.signatureFreezeChecksum,
+                compactedSigs = true
+            };
         }
 
         public override Wallet getWallet(byte[] id)
         {
-            throw new NotImplementedException();
+            // TODO Properly implement this for multiple addresses
+            if(balance.address != null && id.SequenceEqual(balance.address))
+            {
+                return new Wallet(balance.address, balance.balance);
+            }
+            return new Wallet(id, 0);
         }
 
         public override IxiNumber getWalletBalance(byte[] id)
         {
-            throw new NotImplementedException();
+            // TODO Properly implement this for multiple addresses
+            if (balance.address != null && id.SequenceEqual(balance.address))
+            {
+                return balance.balance;
+            }
+            return 0;
         }
 
         public override void shutdown()
@@ -366,6 +461,136 @@ namespace S2.Meta
         public override void parseProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint endpoint)
         {
             ProtocolMessage.parseProtocolMessage(code, data, endpoint);
+        }
+
+        public static void addTransactionToActivityStorage(Transaction transaction)
+        {
+            Activity activity = null;
+            int type = -1;
+            IxiNumber value = transaction.amount;
+            List<byte[]> wallet_list = null;
+            byte[] wallet = null;
+            byte[] primary_address = (new Address(transaction.pubKey)).address;
+            if (Node.walletStorage.isMyAddress(primary_address))
+            {
+                wallet = primary_address;
+                type = (int)ActivityType.TransactionSent;
+                if (transaction.type == (int)Transaction.Type.PoWSolution)
+                {
+                    type = (int)ActivityType.MiningReward;
+                    value = calculateRewardForBlock(BitConverter.ToUInt64(transaction.data, 0));
+                }
+            }
+            else
+            {
+                wallet_list = Node.walletStorage.extractMyAddressesFromAddressList(transaction.toList);
+                if (wallet_list != null)
+                {
+                    type = (int)ActivityType.TransactionReceived;
+                    if (transaction.type == (int)Transaction.Type.StakingReward)
+                    {
+                        type = (int)ActivityType.StakingReward;
+                    }
+                }
+            }
+            if (type != -1)
+            {
+                int status = (int)ActivityStatus.Pending;
+                if (transaction.applied > 0)
+                {
+                    status = (int)ActivityStatus.Final;
+                }
+                if (wallet_list != null)
+                {
+                    foreach (var entry in wallet_list)
+                    {
+                        activity = new Activity(Node.walletStorage.getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(entry), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, Encoding.UTF8.GetBytes(transaction.id), transaction.toList[entry].ToString(), transaction.timeStamp, status, transaction.applied, transaction.id);
+                        ActivityStorage.insertActivity(activity);
+                    }
+                }
+                else if (wallet != null)
+                {
+                    activity = new Activity(Node.walletStorage.getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(wallet), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, Encoding.UTF8.GetBytes(transaction.id), value.ToString(), transaction.timeStamp, status, transaction.applied, transaction.id);
+                    ActivityStorage.insertActivity(activity);
+                }
+            }
+        }
+
+
+        // Calculates the reward amount for a certain block
+        public static IxiNumber calculateRewardForBlock(ulong blockNum)
+        {
+            ulong pow_reward = 0;
+
+            if (blockNum < 1051200) // first year
+            {
+                pow_reward = (blockNum * 9) + 9; // +0.009 IXI
+            }
+            else if (blockNum < 2102400) // second year
+            {
+                pow_reward = (1051200 * 9);
+            }
+            else if (blockNum < 3153600) // third year
+            {
+                pow_reward = (1051200 * 9) + ((blockNum - 2102400) * 9) + 9; // +0.009 IXI
+            }
+            else if (blockNum < 4204800) // fourth year
+            {
+                pow_reward = (2102400 * 9) + ((blockNum - 3153600) * 2) + 2; // +0.0020 IXI
+            }
+            else if (blockNum < 5256001) // fifth year
+            {
+                pow_reward = (2102400 * 9) + (1051200 * 2) + ((blockNum - 4204800) * 9) + 9; // +0.009 IXI
+            }
+            else // after fifth year if mining is still operational
+            {
+                pow_reward = ((3153600 * 9) + (1051200 * 2)) / 2;
+            }
+
+            pow_reward = (pow_reward / 2 + 10000) * 100000; // Divide by 2 (assuming 50% block coverage) + add inital 10 IXI block reward + add the full amount of 0s to cover IxiNumber decimals
+            return new IxiNumber(new BigInteger(pow_reward)); // Generate the corresponding IxiNumber, including decimals
+        }
+
+        public static void processPendingTransactions()
+        {
+            // TODO TODO improve to include failed transactions
+            ulong last_block_height = IxianHandler.getLastBlockHeight();
+            lock (PendingTransactions.pendingTransactions)
+            {
+                long cur_time = Clock.getTimestamp();
+                List<object[]> tmp_pending_transactions = new List<object[]>(PendingTransactions.pendingTransactions);
+                int idx = 0;
+                foreach (var entry in tmp_pending_transactions)
+                {
+                    Transaction t = (Transaction)entry[0];
+                    long tx_time = (long)entry[1];
+                    if ((int)entry[2] > 3) // already received 3+ feedback
+                    {
+                        continue;
+                    }
+
+                    if (t.applied != 0)
+                    {
+                        PendingTransactions.pendingTransactions.RemoveAll(x => ((Transaction)x[0]).id.SequenceEqual(t.id));
+                        continue;
+                    }
+
+                    // if transaction expired, remove it from pending transactions
+                    if (last_block_height > ConsensusConfig.getRedactedWindowSize() && t.blockHeight < last_block_height - ConsensusConfig.getRedactedWindowSize())
+                    {
+                        ActivityStorage.updateStatus(Encoding.UTF8.GetBytes(t.id), ActivityStatus.Error, 0);
+                        PendingTransactions.pendingTransactions.RemoveAll(x => ((Transaction)x[0]).id.SequenceEqual(t.id));
+                        continue;
+                    }
+                    
+                    if (cur_time - tx_time > 40) // if the transaction is pending for over 40 seconds, resend
+                    {
+                        CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, t.getBytes(), null);
+                        PendingTransactions.pendingTransactions[idx][1] = cur_time;
+                    }
+                    idx++;
+                }
+            }
         }
     }
 }
