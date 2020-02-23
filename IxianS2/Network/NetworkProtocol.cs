@@ -147,6 +147,7 @@ namespace S2.Network
                         break;
 
                     case ProtocolMessageCode.newTransaction:
+                    case ProtocolMessageCode.transactionData:
                         {
                             // Forward the new transaction message to the DLT network
                             CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, data, null);
