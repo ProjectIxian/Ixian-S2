@@ -72,8 +72,18 @@ namespace S2.Meta
             // Setup the stats console
             statsConsoleScreen = new StatsConsoleScreen();
 
+            string headers_path = "";
+            if (CoreConfig.isTestNet)
+            {
+                headers_path = "headers";
+            }
+            else
+            {
+                headers_path = "testnet-headers";
+            }
+
             // Start TIV
-            tiv = new TransactionInclusion();
+            tiv = new TransactionInclusion(headers_path);
         }
 
         private bool initWallet()
