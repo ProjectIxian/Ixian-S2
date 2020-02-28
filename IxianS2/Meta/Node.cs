@@ -73,7 +73,7 @@ namespace S2.Meta
             statsConsoleScreen = new StatsConsoleScreen();
 
             string headers_path = "";
-            if (CoreConfig.isTestNet)
+            if (!CoreConfig.isTestNet)
             {
                 headers_path = "headers";
             }
