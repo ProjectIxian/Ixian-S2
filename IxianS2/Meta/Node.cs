@@ -82,7 +82,7 @@ namespace S2.Meta
                 headers_path = "testnet-headers";
             }
 
-            // Start TIV
+            // Init TIV
             tiv = new TransactionInclusion(headers_path);
         }
 
@@ -236,6 +236,9 @@ namespace S2.Meta
 
             // Start the keepalive thread
             PresenceList.startKeepAlive();
+
+            // Start TIV
+            tiv.start();
 
             // Start the maintenance thread
             maintenanceThread = new Thread(performMaintenance);
