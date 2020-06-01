@@ -58,6 +58,9 @@ namespace S2.Meta
         {
             running = true;
 
+            CoreConfig.maximumServerMasterNodes = 1000;
+            CoreConfig.maximumServerClients = 1000;
+
             // Network configuration
             NetworkUtils.configureNetwork(Config.externalIp, Config.serverPort);
 
@@ -72,18 +75,8 @@ namespace S2.Meta
             // Setup the stats console
             statsConsoleScreen = new StatsConsoleScreen();
 
-            string headers_path = "";
-            if (!CoreConfig.isTestNet)
-            {
-                headers_path = "headers";
-            }
-            else
-            {
-                headers_path = "testnet-headers";
-            }
-
             // Init TIV
-            tiv = new TransactionInclusion(headers_path);
+            tiv = new TransactionInclusion();
         }
 
         private bool initWallet()
@@ -237,8 +230,18 @@ namespace S2.Meta
             // Start the keepalive thread
             PresenceList.startKeepAlive();
 
+            string headers_path = "";
+            if (!CoreConfig.isTestNet)
+            {
+                headers_path = "headers";
+            }
+            else
+            {
+                headers_path = "testnet-headers";
+            }
+
             // Start TIV
-            tiv.start();
+            tiv.start(headers_path);
 
             // Start the maintenance thread
             maintenanceThread = new Thread(performMaintenance);
