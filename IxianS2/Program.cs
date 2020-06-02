@@ -217,9 +217,6 @@ namespace S2
             Logging.info(String.Format("API Port: {0}", Config.apiPort));
             Logging.info(String.Format("Wallet File: {0}", Config.walletFile));
 
-            // Initialize the crypto manager
-            CryptoManager.initLib();
-
             // Initialize the node
             node = new Node();
 
