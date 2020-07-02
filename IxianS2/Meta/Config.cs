@@ -41,9 +41,9 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.4.0a"; // S2 Node version
+        public static readonly string version = "xs2c-0.4.1"; // S2 Node version
 
-        public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
+        public static readonly int maximumStreamClients = 1000; // Maximum number of stream clients this server can accept
 
         // Quotas
         public static readonly long lastPaidTimeQuota = 10 * 60; // Allow 10 minutes after payment before checking quotas

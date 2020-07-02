@@ -58,8 +58,8 @@ namespace S2.Meta
         {
             running = true;
 
-            CoreConfig.maximumServerMasterNodes = 1000;
-            CoreConfig.maximumServerClients = 1000;
+            CoreConfig.maximumServerMasterNodes = Config.maximumStreamClients;
+            CoreConfig.maximumServerClients = Config.maximumStreamClients;
 
             // Network configuration
             NetworkUtils.configureNetwork(Config.externalIp, Config.serverPort);
