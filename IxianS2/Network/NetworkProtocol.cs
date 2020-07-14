@@ -154,7 +154,10 @@ namespace S2.Network
 
                             Transaction tx = new Transaction(data, true);
 
-                            PendingTransactions.increaseReceivedCount(tx.id);
+                            if (endpoint.presenceAddress.type == 'M')
+                            {
+                                PendingTransactions.increaseReceivedCount(tx.id, endpoint.presence.wallet);
+                            }
 
                             Node.tiv.receivedNewTransaction(tx);
                             Logging.info("Received new transaction {0}", tx.id);
