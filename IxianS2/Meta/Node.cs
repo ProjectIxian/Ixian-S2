@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading;
 
@@ -61,6 +60,8 @@ namespace S2.Meta
 
             CoreConfig.maximumServerMasterNodes = Config.maximumStreamClients;
             CoreConfig.maximumServerClients = Config.maximumStreamClients;
+
+            UpdateVerify.init(Config.checkVersionUrl, Config.checkVersionSeconds);
 
             // Network configuration
             NetworkUtils.configureNetwork(Config.externalIp, Config.serverPort);
