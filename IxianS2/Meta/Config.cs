@@ -41,7 +41,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.4.1"; // S2 Node version
+        public static readonly string version = "xs2c-0.4.2"; // S2 Node version
 
         public static readonly int maximumStreamClients = 1000; // Maximum number of stream clients this server can accept
 
@@ -69,6 +69,14 @@ namespace S2.Meta
         /// </summary>
         public static string blockNotifyCommand = "";
 
+        // Block height at which the current version of Spixi was generated
+        // Useful for optimized block header sync
+        // Note: Always round last block height to 1000 and subtract 1 (i.e. if last block height is 33234, the correct value is 32999)
+        public static ulong bakedBlockHeight = 1256999;
+
+        // Block checksum (paired with bakedBlockHeight) of bakedBlockHeight
+        // Useful for optimized block header sync
+        public static byte[] bakedBlockChecksum = Crypto.stringToHash("490e4d45bbe16b350674c53fbe053233eb90de40f9dc1bfa146c546dac2f01dc46cd4bdba342981b39c375e4");
 
         private Config()
         {
@@ -82,7 +90,7 @@ namespace S2.Meta
             Console.WriteLine("Starts a new instance of Ixian S2 Node");
             Console.WriteLine("");
             Console.WriteLine(" IxianS2.exe [-h] [-v] [-t] [-x] [-c] [-p 10234] [-a 8081] [-i ip] [-w ixian.wal] [-n seed1.ixian.io:10234]");
-            Console.WriteLine(" [--config ixian.cfg] [--maxLogSize 50] [--maxLogCount 10] [--disableWebStart] [--netdump] [--forceTimeOffset 0]");
+            Console.WriteLine(" [--config ixian.cfg] [--maxLogSize 50] [--maxLogCount 10] [--disableWebStart] [--netdump]");
             Console.WriteLine(" [--generateWallet] [--walletPassword]");
             Console.WriteLine("");
             Console.WriteLine("    -h\t\t\t Displays this help");
@@ -102,7 +110,6 @@ namespace S2.Meta
             Console.WriteLine("");
             Console.WriteLine("----------- Developer CLI flags -----------");
             Console.WriteLine("    --netdump\t\t Enable netdump for debugging purposes");
-            Console.WriteLine("    --forceTimeOffset\t Forces network time offset to a certain value");
             Console.WriteLine("    --generateWallet\t Generates a wallet file and exits, printing the public address. [TESTNET ONLY!]");
             Console.WriteLine("    --walletPassword\t Specify the password for the wallet. [TESTNET ONLY!]");
             Console.WriteLine("");
@@ -124,7 +131,6 @@ namespace S2.Meta
             Console.WriteLine("    maxLogSize\t\t Specify maximum log file size in MB (same as --maxLogSize CLI)");
             Console.WriteLine("    maxLogCount\t\t Specify maximum number of log files (same as --maxLogCount CLI)");
             Console.WriteLine("    disableWebStart\t 1 to disable running http://localhost:8081 on startup (same as --disableWebStart CLI)");
-            Console.WriteLine("    forceTimeOffset\t Forces network time offset to the specified value (same as --forceTimeOffset CLI)");
             Console.WriteLine("    walletNotify\t Execute command when a wallet transaction changes");
             Console.WriteLine("    blockNotify\t Execute command when the block changes");
 
@@ -205,9 +211,6 @@ namespace S2.Meta
                         {
                             disableWebStart = true;
                         }
-                        break;
-                    case "forceTimeOffset":
-                        CoreConfig.forceTimeOffset = int.Parse(value);
                         break;
                     case "walletNotify":
                         CoreConfig.walletNotifyCommand = value;
@@ -304,8 +307,6 @@ namespace S2.Meta
 
             // Debug
             cmd_parser.Setup<string>("netdump").Callback(value => networkDumpFile = value).SetDefault("");
-
-            cmd_parser.Setup<int>("forceTimeOffset").Callback(value => CoreConfig.forceTimeOffset = value).Required();
 
             cmd_parser.Setup<bool>("generateWallet").Callback(value => generateWalletOnly = value).SetDefault(false);
 
