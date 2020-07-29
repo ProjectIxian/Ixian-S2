@@ -7,17 +7,18 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using System.Timers;
 
 namespace S2
 {
     class Program
     {
-        private static System.Timers.Timer mainLoopTimer;
+        private static Thread mainLoopThread;
 
         public static bool noStart = false;
 
         private static Node node = null;
+
+        private static bool running = false;
 
         static void checkRequiredFiles()
         {
@@ -229,49 +230,64 @@ namespace S2
             // Start the actual S2 node
             node.start(verboseConsoleOutputSetting);
 
-            // Setup a timer to handle routine updates
-            mainLoopTimer = new System.Timers.Timer(2000);
-            mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
-            mainLoopTimer.Start();
+            running = true;
+
+            if (mainLoopThread != null)
+            {
+                mainLoopThread.Abort();
+                mainLoopThread = null;
+            }
+
+            mainLoopThread = new Thread(mainLoop);
+            mainLoopThread.Name = "Main_Loop_Thread";
+            mainLoopThread.Start();
 
             if (ConsoleHelpers.verboseConsoleOutput)
                 Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
         }
 
-        static void onUpdate(object source, ElapsedEventArgs e)
+        static void mainLoop()
         {
-            if (Console.KeyAvailable)
+            while (running)
             {
-                ConsoleKeyInfo key = Console.ReadKey();
-
-                if (key.Key == ConsoleKey.V)
+                try
                 {
-                    ConsoleHelpers.verboseConsoleOutput = !ConsoleHelpers.verboseConsoleOutput;
-                    Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
-                    Console.CursorVisible = ConsoleHelpers.verboseConsoleOutput;
-                    if (ConsoleHelpers.verboseConsoleOutput == false)
-                        Node.statsConsoleScreen.clearScreen();
-                }
-                else if (key.Key == ConsoleKey.Escape)
-                {
-                    ConsoleHelpers.verboseConsoleOutput = true;
-                    Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
-                    IxianHandler.forceShutdown = true;
-                }
+                    if (Console.KeyAvailable)
+                    {
+                        ConsoleKeyInfo key = Console.ReadKey();
 
-            }
-            if (Node.update() == false)
-            {
-                IxianHandler.forceShutdown = true;
+                        if (key.Key == ConsoleKey.V)
+                        {
+                            ConsoleHelpers.verboseConsoleOutput = !ConsoleHelpers.verboseConsoleOutput;
+                            Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
+                            Console.CursorVisible = ConsoleHelpers.verboseConsoleOutput;
+                            if (ConsoleHelpers.verboseConsoleOutput == false)
+                                Node.statsConsoleScreen.clearScreen();
+                        }
+                        else if (key.Key == ConsoleKey.Escape)
+                        {
+                            ConsoleHelpers.verboseConsoleOutput = true;
+                            Logging.consoleOutput = ConsoleHelpers.verboseConsoleOutput;
+                            IxianHandler.forceShutdown = true;
+                        }
+
+                    }
+                    if (Node.update() == false)
+                    {
+                        IxianHandler.forceShutdown = true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logging.error("Exception occured in mainLoop: " + e);
+                }
+                Thread.Sleep(1000);
             }
         }
 
         static void onStop()
         {
-            if (mainLoopTimer != null)
-            {
-                mainLoopTimer.Stop();
-            }
+            running = false;
 
             if (noStart == false)
             {
