@@ -228,7 +228,7 @@ namespace S2.Meta
             NetworkServer.beginNetworkOperations();
 
             // Start the network client manager
-            NetworkClientManager.start();
+            NetworkClientManager.start(true);
 
             // Start the keepalive thread
             PresenceList.startKeepAlive();
