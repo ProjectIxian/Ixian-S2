@@ -137,7 +137,7 @@ namespace S2.Meta
             if (connectionsIn + connectionsOut < 1)
                 dltStatus = "connecting   ";
 
-            if (BlockHeaderStorage.lastBlockHeaderTime > 1800) // if no block for over 1800 seconds
+            if (Clock.getTimestamp() - BlockHeaderStorage.lastBlockHeaderTime > 1800) // if no block for over 1800 seconds
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 dltStatus = "No block received for over 30 minutes";
