@@ -296,10 +296,6 @@ namespace S2.Network
                                             case ProtocolByeCode.bye: // all good
                                                 break;
 
-                                            case ProtocolByeCode.forked: // forked node disconnected
-                                                Logging.info(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
-                                                break;
-
                                             case ProtocolByeCode.deprecated: // deprecated node disconnected
                                                 Logging.info(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
                                                 break;
