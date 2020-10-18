@@ -97,7 +97,7 @@ namespace S2
         }
 
         // Retrieve the friend's connected S2 node address. Returns null if not found
-        public string searchForRelay()
+        /*public string searchForRelay()
         {
             string hostname = null;
             Presence presence = PresenceList.getPresenceByAddress(walletAddress);
@@ -148,7 +148,7 @@ namespace S2
 
             // Finally, return the ip address of the node
             return relayIP;
-        }
+        }*/
 
 
         // Generate a random password string of a specified length
