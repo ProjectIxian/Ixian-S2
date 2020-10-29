@@ -49,7 +49,7 @@ namespace S2.Meta
         public Node()
         {
             CoreConfig.productVersion = Config.version;
-            IxianHandler.setHandler(this);
+            IxianHandler.init(this, Config.networkType);
             init();
         }
 
@@ -94,7 +94,7 @@ namespace S2.Meta
                 // Request a password
                 // NOTE: This can only be done in testnet to enable automatic testing!
                 string password = "";
-                if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && CoreConfig.isTestNet)
+                if (Config.dangerCommandlinePasswordCleartextUnsafe != "")
                 {
                     Logging.warn("TestNet detected and wallet password has been specified on the command line!");
                     password = Config.dangerCommandlinePasswordCleartextUnsafe;
@@ -122,7 +122,7 @@ namespace S2.Meta
 
                     // NOTE: This is only permitted on the testnet for dev/testing purposes!
                     string password = "";
-                    if (Config.dangerCommandlinePasswordCleartextUnsafe != "" && CoreConfig.isTestNet)
+                    if (Config.dangerCommandlinePasswordCleartextUnsafe != "")
                     {
                         Logging.warn("Attempting to unlock the wallet with a password from commandline!");
                         password = Config.dangerCommandlinePasswordCleartextUnsafe;
@@ -237,7 +237,7 @@ namespace S2.Meta
             byte[] block_checksum = null;
 
             string headers_path = "";
-            if (CoreConfig.isTestNet)
+            if (IxianHandler.isTestNet)
             {
                 headers_path = "testnet-headers";
             }
@@ -264,12 +264,6 @@ namespace S2.Meta
         {
             // Update the stream processor
             StreamProcessor.update();
-
-            // Check for test client mode
-            if (Config.isTestClient)
-            {
-                TestClientNode.update();
-            }
 
             // Request initial wallet balance
             if (balance.blockHeight == 0 || balance.lastUpdate + 300 < Clock.getTimestamp())

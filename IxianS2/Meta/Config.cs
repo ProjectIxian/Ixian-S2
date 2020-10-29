@@ -19,6 +19,8 @@ namespace S2.Meta
         private static int defaultServerPort = 10235;
         private static int defaultTestnetServerPort = 11235;
 
+        public static NetworkType networkType = NetworkType.main;
+
         public static int apiPort = 8001;
         public static int testnetApiPort = 8101;
 
@@ -33,6 +35,8 @@ namespace S2.Meta
         public static int maxLogSize = 50;
         public static int maxLogCount = 10;
 
+        public static int logVerbosity = (int)LogSeverity.info + (int)LogSeverity.warn + (int)LogSeverity.error;
+
         public static bool disableWebStart = false;
 
         public static bool onlyShowAddresses = false;
@@ -41,7 +45,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.4.4-dev"; // S2 Node version
+        public static readonly string version = "xs2c-0.4.5"; // S2 Node version
 
         public static readonly string checkVersionUrl = "https://www.ixian.io/s2-update.txt";
         public static readonly int checkVersionSeconds = 6 * 60 * 60; // 6 hours
@@ -109,6 +113,7 @@ namespace S2.Meta
             Console.WriteLine("    --config\t\t Specify config filename (default ixian.cfg)");
             Console.WriteLine("    --maxLogSize\t Specify maximum log file size in MB");
             Console.WriteLine("    --maxLogCount\t Specify maximum number of log files");
+            Console.WriteLine("    --logVerbosity\t Sets log verbosity (0 = none, trace = 1, info = 2, warn = 4, error = 8)");
             Console.WriteLine("    --disableWebStart\t Disable running http://localhost:8081 on startup");
             Console.WriteLine("");
             Console.WriteLine("----------- Developer CLI flags -----------");
@@ -133,6 +138,7 @@ namespace S2.Meta
             Console.WriteLine("    addTestnetPeer\t Specify which seed node to use in testnet mode (same as -n CLI) (can be used multiple times)");
             Console.WriteLine("    maxLogSize\t\t Specify maximum log file size in MB (same as --maxLogSize CLI)");
             Console.WriteLine("    maxLogCount\t\t Specify maximum number of log files (same as --maxLogCount CLI)");
+            Console.WriteLine("    logVerbosity\t Sets log verbosity (same as --logVerbosity CLI)");
             Console.WriteLine("    disableWebStart\t 1 to disable running http://localhost:8081 on startup (same as --disableWebStart CLI)");
             Console.WriteLine("    walletNotify\t Execute command when a wallet transaction changes");
             Console.WriteLine("    blockNotify\t Execute command when the block changes");
@@ -221,6 +227,9 @@ namespace S2.Meta
                     case "blockNotify":
                         Config.blockNotifyCommand = value;
                         break;
+                    case "logVerbosity":
+                        logVerbosity = int.Parse(value);
+                        break;
                     default:
                         // unknown key
                         Logging.warn("Unknown config parameter was specified '" + key + "'");
@@ -254,22 +263,22 @@ namespace S2.Meta
             cmd_parser = new FluentCommandLineParser();
 
             // testnet
-            cmd_parser.Setup<bool>('t', "testnet").Callback(value => CoreConfig.isTestNet = true).Required();
+            cmd_parser.Setup<bool>('t', "testnet").Callback(value => networkType = NetworkType.test).Required();
 
             cmd_parser.Parse(args);
 
-            if (CoreConfig.isTestNet)
+            if (networkType == NetworkType.test)
             {
                 Config.serverPort = defaultTestnetServerPort;
                 apiPort = testnetApiPort;
                 PeerStorage.init(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "testnet-peers.dat");
+                ActivityStorage.filename = "testnet-activity.dat";
             }
             else
             {
                 Config.serverPort = defaultServerPort;
                 PeerStorage.init(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
             }
-
 
 
             string seedNode = "";
@@ -317,6 +326,8 @@ namespace S2.Meta
 
             cmd_parser.Setup<bool>("testClient").Callback(value => isTestClient = true).Required();
 
+            cmd_parser.Setup<int>("logVerbosity").Callback(value => logVerbosity = value).Required();
+
             cmd_parser.Parse(args);
 
 
@@ -329,7 +340,7 @@ namespace S2.Meta
 
             if (seedNode != "")
             {
-                if (CoreConfig.isTestNet)
+                if (networkType == NetworkType.test)
                 {
                     CoreNetworkUtils.seedTestNetNodes = new List<string[]>
                         {

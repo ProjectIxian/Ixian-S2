@@ -6,11 +6,12 @@ using S2.Meta;
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace S2.Network
 {
     public class ProtocolMessage
-    {        
+    {
         // Unified protocol message parsing
         public static void parseProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint endpoint)
         {
@@ -76,8 +77,16 @@ namespace S2.Network
                         handleGetPresence(data, endpoint);
                         break;
 
+                    case ProtocolMessageCode.getPresence2:
+                        handleGetPresence2(data, endpoint);
+                        break;
+
                     case ProtocolMessageCode.balance:
                         handleBalance(data, endpoint);
+                        break;
+
+                    case ProtocolMessageCode.balance2:
+                        handleBalance2(data, endpoint);
                         break;
 
                     case ProtocolMessageCode.bye:
@@ -289,6 +298,34 @@ namespace S2.Network
                 }
             }
         }
+        static void handleGetPresence2(byte[] data, RemoteEndpoint endpoint)
+        {
+            using (MemoryStream m = new MemoryStream(data))
+            {
+                using (BinaryReader reader = new BinaryReader(m))
+                {
+                    int walletLen = (int)reader.ReadIxiVarUInt();
+                    byte[] wallet = reader.ReadBytes(walletLen);
+                    Presence p = PresenceList.getPresenceByAddress(wallet);
+                    if (p != null)
+                    {
+                        lock (p)
+                        {
+                            byte[][] presence_chunks = p.getByteChunks();
+                            foreach (byte[] presence_chunk in presence_chunks)
+                            {
+                                endpoint.sendData(ProtocolMessageCode.updatePresence, presence_chunk, null);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // TODO blacklisting point
+                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
+                    }
+                }
+            }
+        }
 
         static void handleBalance(byte[] data, RemoteEndpoint endpoint)
         {
@@ -310,6 +347,40 @@ namespace S2.Network
                         if (block_height > Node.balance.blockHeight && (Node.balance.balance != balance || Node.balance.blockHeight == 0))
                         {
                             byte[] block_checksum = reader.ReadBytes(reader.ReadInt32());
+
+                            Node.balance.address = address;
+                            Node.balance.balance = balance;
+                            Node.balance.blockHeight = block_height;
+                            Node.balance.blockChecksum = block_checksum;
+                            Node.balance.lastUpdate = Clock.getTimestamp();
+                            Node.balance.verified = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void handleBalance2(byte[] data, RemoteEndpoint endpoint)
+        {
+            using (MemoryStream m = new MemoryStream(data))
+            {
+                using (BinaryReader reader = new BinaryReader(m))
+                {
+                    int address_length = (int)reader.ReadIxiVarUInt();
+                    byte[] address = reader.ReadBytes(address_length);
+
+                    // Retrieve the latest balance
+                    int balance_len = (int)reader.ReadIxiVarUInt();
+                    IxiNumber balance = new IxiNumber(new BigInteger(reader.ReadBytes(balance_len)));
+
+                    if (address.SequenceEqual(Node.walletStorage.getPrimaryAddress()))
+                    {
+                        // Retrieve the blockheight for the balance
+                        ulong block_height = reader.ReadIxiVarUInt();
+
+                        if (block_height > Node.balance.blockHeight && (Node.balance.balance != balance || Node.balance.blockHeight == 0))
+                        {
+                            byte[] block_checksum = reader.ReadBytes((int)reader.ReadIxiVarUInt());
 
                             Node.balance.address = address;
                             Node.balance.balance = balance;

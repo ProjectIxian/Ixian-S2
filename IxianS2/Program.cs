@@ -154,7 +154,7 @@ namespace S2
             IXICore.Utils.ConsoleHelpers.prepareWindowsConsole();
 
             // Start logging
-            if(!Logging.start(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)))
+            if(!Logging.start(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), Config.logVerbosity))
             {
                 IxianHandler.forceShutdown = true;
                 Logging.info("Press ENTER to exit.");
@@ -187,7 +187,9 @@ namespace S2
             bool verboseConsoleOutputSetting = ConsoleHelpers.verboseConsoleOutput;
             ConsoleHelpers.verboseConsoleOutput = true;
 
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine(string.Format("IXIAN S2 {0} ({1})", Config.version, CoreConfig.version));
+            Console.ResetColor();
 
             // Check for critical files in the exe dir
             checkRequiredFiles();
@@ -204,7 +206,7 @@ namespace S2
             // Set the logging options
             Logging.setOptions(Config.maxLogSize, Config.maxLogCount);
 
-            Logging.info(string.Format("Starting IXIAN S2 {0} ({1})", Config.version, CoreConfig.version));
+            Logging.info("Starting IXIAN S2 {0} ({1})", Config.version, CoreConfig.version);
 
             // Check for the right vc++ redist for the argon miner
             // Ignore if we're on Mono
@@ -219,10 +221,10 @@ namespace S2
             }
 
             // Log the parameters to notice any changes
-            Logging.info(String.Format("Mainnet: {0}", !CoreConfig.isTestNet));
-            Logging.info(String.Format("Server Port: {0}", Config.serverPort));
-            Logging.info(String.Format("API Port: {0}", Config.apiPort));
-            Logging.info(String.Format("Wallet File: {0}", Config.walletFile));
+            Logging.info("Network: {0}", Config.networkType);
+            Logging.info("Server Port: {0}", Config.serverPort);
+            Logging.info("API Port: {0}", Config.apiPort);
+            Logging.info("Wallet File: {0}", Config.walletFile);
 
             // Initialize the node
             node = new Node();

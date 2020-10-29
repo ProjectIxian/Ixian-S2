@@ -166,7 +166,7 @@ namespace S2
                     writer.Write(address);
 
                     // Send the testnet designator
-                    writer.Write(CoreConfig.isTestNet);
+                    writer.Write(IxianHandler.isTestNet);
 
                     // Send the node type
                     char node_type = 'C'; // This is a Client node
