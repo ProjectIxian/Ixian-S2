@@ -274,7 +274,7 @@ namespace S2.Meta
                     {
                         writer.Write(Node.walletStorage.getPrimaryAddress().Length);
                         writer.Write(Node.walletStorage.getPrimaryAddress());
-                        NetworkClientManager.broadcastData(new char[] { 'M' }, ProtocolMessageCode.getBalance, mw.ToArray(), null);
+                        NetworkClientManager.broadcastData(new char[] { 'M', 'H' }, ProtocolMessageCode.getBalance, mw.ToArray(), null);
                     }
                 }
             }
