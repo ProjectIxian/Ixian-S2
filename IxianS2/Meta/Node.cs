@@ -48,8 +48,7 @@ namespace S2.Meta
 
         public Node()
         {
-            CoreConfig.productVersion = Config.version;
-            IxianHandler.init(this, Config.networkType);
+            IxianHandler.init(Config.version, this, Config.networkType);
             init();
         }
 
