@@ -77,6 +77,8 @@ namespace S2.Meta
             // Setup the stats console
             statsConsoleScreen = new StatsConsoleScreen();
 
+            PeerStorage.init("");
+
             // Init TIV
             tiv = new TransactionInclusion();
         }
@@ -233,27 +235,15 @@ namespace S2.Meta
             // Start the keepalive thread
             PresenceList.startKeepAlive();
 
-            ulong block_height = 0;
-            byte[] block_checksum = null;
-
-            string headers_path = "";
-            if (IxianHandler.isTestNet)
-            {
-                headers_path = "testnet-headers";
-            }
-            else
-            {
-                headers_path = "headers";
-                if (generatedNewWallet || !walletStorage.walletExists())
-                {
-                    generatedNewWallet = false;
-                    block_height = Config.bakedBlockHeight;
-                    block_checksum = Config.bakedBlockChecksum;
-                }
-            }
-
             // Start TIV
-            tiv.start(headers_path, block_height, block_checksum);
+            if (generatedNewWallet || !walletStorage.walletExists())
+            {
+                generatedNewWallet = false;
+                tiv.start("");
+            }else
+            {
+                tiv.start("", 0, null);
+            }
 
             // Start the maintenance thread
             maintenanceThread = new Thread(performMaintenance);
