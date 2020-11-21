@@ -186,8 +186,6 @@ namespace S2.Network
             message.type = StreamMessageCode.error;
             message.recipient = recipient;
             message.sender = sender;
-            message.transaction = new byte[1];
-            message.sigdata = new byte[1];
             message.data = data;
             message.encryptionType = StreamMessageEncryptionCode.none;
 
