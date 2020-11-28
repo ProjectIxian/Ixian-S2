@@ -93,18 +93,9 @@ namespace S2.Network
                         CoreProtocolMessage.processBye(data, endpoint);
                         break;
 
-                    case ProtocolMessageCode.blockHeaders:
-                        // Forward the block headers to the TIV handler
-                        Node.tiv.receivedBlockHeaders(data, endpoint);
-                        break;
-
                     case ProtocolMessageCode.blockHeaders2:
                         // Forward the block headers to the TIV handler
                         Node.tiv.receivedBlockHeaders2(data, endpoint);
-                        break;
-
-                    case ProtocolMessageCode.pitData:
-                        Node.tiv.receivedPIT(data, endpoint);
                         break;
 
                     case ProtocolMessageCode.pitData2:

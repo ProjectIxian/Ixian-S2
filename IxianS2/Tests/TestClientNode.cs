@@ -1,6 +1,7 @@
 ﻿using IXICore;
 using IXICore.Meta;
 using IXICore.Network;
+using IXICore.Utils;
 using S2.Meta;
 using S2.Network;
 using System;
@@ -30,9 +31,9 @@ namespace S2
             {
                 using (BinaryWriter writer = new BinaryWriter(mw))
                 {
-                    writer.Write(Node.walletStorage.getPrimaryAddress().Length);
+                    writer.WriteIxiVarInt(Node.walletStorage.getPrimaryAddress().Length);
                     writer.Write(Node.walletStorage.getPrimaryAddress());
-                    NetworkClientManager.broadcastData(new char[]{ 'M', 'H' }, ProtocolMessageCode.getBalance, mw.ToArray(), null);
+                    NetworkClientManager.broadcastData(new char[]{ 'M', 'H' }, ProtocolMessageCode.getBalance2, mw.ToArray(), null);
                 }
             }
         }
