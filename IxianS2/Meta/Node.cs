@@ -209,6 +209,11 @@ namespace S2.Meta
             // Start the HTTP JSON API server
             apiServer = new APIServer(Config.apiBinds, Config.apiUsers, Config.apiAllowedIps);
 
+            if (IXICore.Platform.onMono() == false && !Config.disableWebStart)
+            {
+                System.Diagnostics.Process.Start(Config.apiBinds[0]);
+            }
+
             // Prepare stats screen
             ConsoleHelpers.verboseConsoleOutput = verboseConsoleOutput;
             Logging.consoleOutput = verboseConsoleOutput;

@@ -45,7 +45,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.4.5"; // S2 Node version
+        public static readonly string version = "xs2c-0.4.6"; // S2 Node version
 
         public static readonly string checkVersionUrl = "https://www.ixian.io/s2-update.txt";
         public static readonly int checkVersionSeconds = 6 * 60 * 60; // 6 hours
@@ -121,9 +121,13 @@ namespace S2.Meta
             Console.WriteLine(" Available options:");
             Console.WriteLine("    s2Port\t\t Port to listen on (same as -p CLI)");
             Console.WriteLine("    testnetS2Port\t Port to listen on in testnet mode (same as -p CLI)");
+
             Console.WriteLine("    apiPort\t\t HTTP/API port to listen on (same as -a CLI)");
+            Console.WriteLine("    apiAllowIp\t\t Allow API connections from specified source or sources (can be used multiple times)");
+            Console.WriteLine("    apiBind\t\t Bind to given address to listen for API connections (can be used multiple times)");
             Console.WriteLine("    testnetApiPort\t HTTP/API port to listen on in testnet mode (same as -a CLI)");
             Console.WriteLine("    addApiUser\t\t Adds user:password that can access the API (can be used multiple times)");
+
             Console.WriteLine("    externalIp\t\t External IP Address to use (same as -i CLI)");
             Console.WriteLine("    addPeer\t\t Specify which seed node to use (same as -n CLI) (can be used multiple times)");
             Console.WriteLine("    addTestnetPeer\t Specify which seed node to use in testnet mode (same as -n CLI) (can be used multiple times)");
@@ -183,6 +187,12 @@ namespace S2.Meta
                         break;
                     case "testnetApiPort":
                         testnetApiPort = int.Parse(value);
+                        break;
+                    case "apiAllowIp":
+                        apiAllowedIps.Add(value);
+                        break;
+                    case "apiBind":
+                        apiBinds.Add(value);
                         break;
                     case "addApiUser":
                         string[] credential = value.Split(':');
