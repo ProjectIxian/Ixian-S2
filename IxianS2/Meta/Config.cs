@@ -45,7 +45,7 @@ namespace S2.Meta
         public static string externalIp = "";
 
         // Read-only values
-        public static readonly string version = "xs2c-0.4.7a"; // S2 Node version
+        public static readonly string version = "xs2c-0.4.8"; // S2 Node version
 
         public static readonly string checkVersionUrl = "https://www.ixian.io/s2-update.txt";
         public static readonly int checkVersionSeconds = 6 * 60 * 60; // 6 hours
