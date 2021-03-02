@@ -119,14 +119,7 @@ namespace S2.Network
             {
                 using (BinaryReader reader = new BinaryReader(m))
                 {
-                    if (data[0] == 5)
-                    {
-                        CoreProtocolMessage.processHelloMessageV5(endpoint, reader);
-                    }
-                    else
-                    {
-                        CoreProtocolMessage.processHelloMessageV6(endpoint, reader);
-                    }
+                    CoreProtocolMessage.processHelloMessageV6(endpoint, reader);
                 }
             }
         }
@@ -137,127 +130,55 @@ namespace S2.Network
             {
                 using (BinaryReader reader = new BinaryReader(m))
                 {
-                    if (data[0] == 5)
+                    if (CoreProtocolMessage.processHelloMessageV6(endpoint, reader))
                     {
-                        if (CoreProtocolMessage.processHelloMessageV5(endpoint, reader))
+                        char node_type = endpoint.presenceAddress.type;
+                        if (node_type != 'M' && node_type != 'H')
                         {
-                            char node_type = endpoint.presenceAddress.type;
-                            if (node_type != 'M' && node_type != 'H')
-                            {
-                                CoreProtocolMessage.sendBye(endpoint, ProtocolByeCode.expectingMaster, string.Format("Expecting master node."), "", true);
-                                return;
-                            }
-
-                            ulong last_block_num = reader.ReadUInt64();
-
-                            int bcLen = reader.ReadInt32();
-                            byte[] block_checksum = reader.ReadBytes(bcLen);
-
-                            int wsLen = reader.ReadInt32();
-                            byte[] walletstate_checksum = reader.ReadBytes(wsLen);
-
-                            int consensus = reader.ReadInt32();
-
-                            endpoint.blockHeight = last_block_num;
-
-                            int block_version = reader.ReadInt32();
-
-                            // Check for legacy level
-                            ulong legacy_level = reader.ReadUInt64(); // deprecated
-
-                            int challenge_response_len = reader.ReadInt32();
-                            byte[] challenge_response = reader.ReadBytes(challenge_response_len);
-                            if (!CryptoManager.lib.verifySignature(endpoint.challenge, endpoint.serverPubKey, challenge_response))
-                            {
-                                CoreProtocolMessage.sendBye(endpoint, ProtocolByeCode.authFailed, string.Format("Invalid challenge response."), "", true);
-                                return;
-                            }
-
-                            try
-                            {
-                                string public_ip = reader.ReadString();
-                                ((NetworkClient)endpoint).myAddress = public_ip;
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-
-                            string address = NetworkClientManager.getMyAddress();
-                            if (address != null)
-                            {
-                                if (IxianHandler.publicIP != address)
-                                {
-                                    Logging.info("Setting public IP to " + address);
-                                    IxianHandler.publicIP = address;
-                                }
-                            }
-
-                            // Process the hello data
-                            endpoint.helloReceived = true;
-                            NetworkClientManager.recalculateLocalTimeDifference();
-
-                            Node.setNetworkBlock(last_block_num, block_checksum, block_version);
-
-                            // Get random presences
-                            endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'M' });
-                            endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'H' });
-
-                            CoreProtocolMessage.subscribeToEvents(endpoint);
+                            CoreProtocolMessage.sendBye(endpoint, ProtocolByeCode.expectingMaster, string.Format("Expecting master node."), "", true);
+                            return;
                         }
-                    }
-                    else
-                    {
-                        if (CoreProtocolMessage.processHelloMessageV6(endpoint, reader))
+
+                        ulong last_block_num = reader.ReadIxiVarUInt();
+
+                        int bcLen = (int)reader.ReadIxiVarUInt();
+                        byte[] block_checksum = reader.ReadBytes(bcLen);
+
+                        endpoint.blockHeight = last_block_num;
+
+                        int block_version = (int)reader.ReadIxiVarUInt();
+
+                        try
                         {
-                            char node_type = endpoint.presenceAddress.type;
-                            if (node_type != 'M' && node_type != 'H')
-                            {
-                                CoreProtocolMessage.sendBye(endpoint, ProtocolByeCode.expectingMaster, string.Format("Expecting master node."), "", true);
-                                return;
-                            }
-
-                            ulong last_block_num = reader.ReadIxiVarUInt();
-
-                            int bcLen = (int)reader.ReadIxiVarUInt();
-                            byte[] block_checksum = reader.ReadBytes(bcLen);
-
-                            endpoint.blockHeight = last_block_num;
-
-                            int block_version = (int)reader.ReadIxiVarUInt();
-
-                            try
-                            {
-                                string public_ip = reader.ReadString();
-                                ((NetworkClient)endpoint).myAddress = public_ip;
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-
-                            string address = NetworkClientManager.getMyAddress();
-                            if (address != null)
-                            {
-                                if (IxianHandler.publicIP != address)
-                                {
-                                    Logging.info("Setting public IP to " + address);
-                                    IxianHandler.publicIP = address;
-                                }
-                            }
-
-                            // Process the hello data
-                            endpoint.helloReceived = true;
-                            NetworkClientManager.recalculateLocalTimeDifference();
-
-                            Node.setNetworkBlock(last_block_num, block_checksum, block_version);
-
-                            // Get random presences
-                            endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'M' });
-                            endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'H' });
-
-                            CoreProtocolMessage.subscribeToEvents(endpoint);
+                            string public_ip = reader.ReadString();
+                            ((NetworkClient)endpoint).myAddress = public_ip;
                         }
+                        catch (Exception)
+                        {
+
+                        }
+
+                        string address = NetworkClientManager.getMyAddress();
+                        if (address != null)
+                        {
+                            if (IxianHandler.publicIP != address)
+                            {
+                                Logging.info("Setting public IP to " + address);
+                                IxianHandler.publicIP = address;
+                            }
+                        }
+
+                        // Process the hello data
+                        endpoint.helloReceived = true;
+                        NetworkClientManager.recalculateLocalTimeDifference();
+
+                        Node.setNetworkBlock(last_block_num, block_checksum, block_version);
+
+                        // Get random presences
+                        endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'M' });
+                        endpoint.sendData(ProtocolMessageCode.getRandomPresences, new byte[1] { (byte)'H' });
+
+                        CoreProtocolMessage.subscribeToEvents(endpoint);
                     }
                 }
             }
