@@ -19,10 +19,14 @@ namespace S2.Network
         static List<StreamMessage> messages = new List<StreamMessage>(); // List that stores stream messages
         static List<StreamTransaction> transactions = new List<StreamTransaction>(); // List that stores stream transactions
 
+        public static ulong bytesReceived = 0; // S2 data received
+        public static ulong bytesSent = 0; // S2 data sent
 
         // Called when receiving S2 data from clients
         public static void receiveData(byte[] bytes, RemoteEndpoint endpoint)
         {
+            bytesReceived += (ulong)bytes.Length;
+
             string endpoint_wallet_string = Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet);
             Logging.info(string.Format("Receiving S2 data from {0}", endpoint_wallet_string));
 
@@ -56,6 +60,7 @@ namespace S2.Network
                 sendError(message.sender, message.recipient, message.id, endpoint);
                 return;
             }
+            bytesSent += (ulong)bytes.Length;
 
             // TODO: commented for development purposes ONLY!
             /*
