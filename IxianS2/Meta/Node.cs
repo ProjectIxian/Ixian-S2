@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace S2.Meta
@@ -470,11 +469,6 @@ namespace S2.Meta
             IxianHandler.forceShutdown = true;
         }
 
-        public override WalletStorage getWalletStorage()
-        {
-            return walletStorage;
-        }
-
         public override void parseProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint endpoint)
         {
             ProtocolMessage.parseProtocolMessage(code, data, endpoint);
@@ -581,6 +575,11 @@ namespace S2.Meta
                     idx++;
                 }
             }
+        }
+
+        public override BlockHeader getBlockHeader(ulong blockNum)
+        {
+            return BlockHeaderStorage.getBlockHeader(blockNum);
         }
     }
 }

@@ -190,9 +190,9 @@ namespace S2
                     writer.Write(timestamp);
 
                     // send signature
-                    byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(ConsensusConfig.ixianChecksumLockString + "-" + CoreConfig.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
-                    writer.Write(signature.Length);
-                    writer.Write(signature);
+                    //byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(ConsensusConfig.ch.ixianChecksumLockString + "-" + CoreConfig.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
+                    //writer.Write(signature.Length);
+                    //writer.Write(signature);
 
 /*
                     // Send the public IP address and port

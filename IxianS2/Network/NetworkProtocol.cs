@@ -44,7 +44,6 @@ namespace S2.Network
                         StreamProcessor.receivedTransactionSignature(data, endpoint);
                         break;
 
-                    case ProtocolMessageCode.newTransaction:
                     case ProtocolMessageCode.transactionData:
                         {
                             Transaction tx = new Transaction(data, true);
@@ -63,7 +62,7 @@ namespace S2.Network
 
                     case ProtocolMessageCode.updatePresence:
                         // Parse the data and update entries in the presence list
-                        PresenceList.updateFromBytes(data);
+                        PresenceList.updateFromBytes(data, 0);
                         break;
 
                     case ProtocolMessageCode.keepAlivePresence:
