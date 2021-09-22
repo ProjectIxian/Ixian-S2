@@ -161,7 +161,7 @@ namespace S2
                     writer.Write(CoreConfig.protocolVersion);
 
                     // Send the public node address
-                    byte[] address = Node.walletStorage.getPrimaryAddress();
+                    byte[] address = IxianHandler.getWalletStorage().getPrimaryAddress();
                     writer.Write(address.Length);
                     writer.Write(address);
 
@@ -179,8 +179,8 @@ namespace S2
                     writer.Write(CoreConfig.device_id);
 
                     // Send the wallet public key
-                    writer.Write(Node.walletStorage.getPrimaryPublicKey().Length);
-                    writer.Write(Node.walletStorage.getPrimaryPublicKey());
+                    writer.Write(IxianHandler.getWalletStorage().getPrimaryPublicKey().Length);
+                    writer.Write(IxianHandler.getWalletStorage().getPrimaryPublicKey());
 
                     // Send listening port
                     writer.Write(0);
@@ -190,7 +190,7 @@ namespace S2
                     writer.Write(timestamp);
 
                     // send signature
-                    //byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(ConsensusConfig.ch.ixianChecksumLockString + "-" + CoreConfig.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
+                    //byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(ConsensusConfig.ch.ixianChecksumLockString + "-" + CoreConfig.device_id + "-" + timestamp + "-" + publicHostname), IxianHandler.getWalletStorage().getPrimaryPrivateKey());
                     //writer.Write(signature.Length);
                     //writer.Write(signature);
 
@@ -200,10 +200,10 @@ namespace S2
 
 
                     // Send the S2 public key
-                    writer.Write(Node.walletStorage.encPublicKey);
+                    writer.Write(IxianHandler.getWalletStorage().encPublicKey);
 
                     // Send the wallet public key
-                    writer.Write(Node.walletStorage.publicKey);*/
+                    writer.Write(IxianHandler.getWalletStorage().publicKey);*/
 
                     sendData(ProtocolMessageCode.hello, m.ToArray());
 

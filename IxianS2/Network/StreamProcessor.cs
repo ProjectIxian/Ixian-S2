@@ -84,7 +84,7 @@ namespace S2.Network
                         }
 
                         // Validate transaction receiver
-                        if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address) == false)
+                        if (transaction.toList.Keys.First().SequenceEqual(IxianHandler.getWalletStorage().address) == false)
                         {
                             Logging.error("Relayed message transaction receiver is not this S2 node");
                             sendError(message.sender);
@@ -118,7 +118,7 @@ namespace S2.Network
                         }
 
                         // For testing purposes, allow the S2 node to receive relay data itself
-                        if (message.recipient.SequenceEqual(Node.walletStorage.getWalletAddress()))
+                        if (message.recipient.SequenceEqual(IxianHandler.getWalletStorage().getWalletAddress()))
                         {               
                             string test = Encoding.UTF8.GetString(message.data);
                             Logging.info(test);

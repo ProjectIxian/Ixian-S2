@@ -31,8 +31,8 @@ namespace S2
             {
                 using (BinaryWriter writer = new BinaryWriter(mw))
                 {
-                    writer.WriteIxiVarInt(Node.walletStorage.getPrimaryAddress().Length);
-                    writer.Write(Node.walletStorage.getPrimaryAddress());
+                    writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().Length);
+                    writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress());
                     NetworkClientManager.broadcastData(new char[]{ 'M', 'H' }, ProtocolMessageCode.getBalance2, mw.ToArray(), null);
                 }
             }
@@ -108,13 +108,13 @@ namespace S2
             transaction.fee = ConsensusConfig.transactionPrice;
             transaction.fromList.Add(new byte[1] { 0 }, transaction.amount + transaction.fee);
             transaction.blockHeight = Node.blockHeight;
-            transaction.pubKey = Node.walletStorage.getPrimaryPublicKey(); // TODO: check if it's in the walletstate already
+            transaction.pubKey = IxianHandler.getWalletStorage().getPrimaryPublicKey(); // TODO: check if it's in the walletstate already
             transaction.checksum = Transaction.calculateChecksum(transaction);
 
             // Prepare the stream message
             StreamMessage message = new StreamMessage();
             message.recipient = friend.walletAddress;
-            message.sender = Node.walletStorage.getPrimaryAddress();
+            message.sender = IxianHandler.getWalletStorage().getPrimaryAddress();
             message.transaction = transaction.getBytes();
 
 

@@ -23,9 +23,6 @@ namespace S2.Meta
 
     class Node : IxianNode
     {
-        // Public
-        public static WalletStorage walletStorage;
-
         public static APIServer apiServer;
 
         public static StatsConsoleScreen statsConsoleScreen = null;
@@ -83,7 +80,7 @@ namespace S2.Meta
 
         private bool initWallet()
         {
-            walletStorage = new WalletStorage(Config.walletFile);
+            WalletStorage walletStorage = new WalletStorage(Config.walletFile);
 
             Logging.flush();
 
@@ -187,6 +184,14 @@ namespace S2.Meta
             Logging.info("Public Node Address: {0}", Base58Check.Base58CheckEncoding.EncodePlain(walletStorage.getPrimaryAddress()));
 
 
+            if (walletStorage.viewingWallet)
+            {
+                Logging.error("Viewing-only wallet {0} cannot be used as the primary DLT Node wallet.", Base58Check.Base58CheckEncoding.EncodePlain(walletStorage.getPrimaryAddress()));
+                return false;
+            }
+
+            IxianHandler.addWallet(walletStorage);
+
             return true;
         }
 
@@ -239,7 +244,7 @@ namespace S2.Meta
             PresenceList.startKeepAlive();
 
             // Start TIV
-            if (generatedNewWallet || !walletStorage.walletExists())
+            if (generatedNewWallet || !File.Exists(Config.walletFile))
             {
                 generatedNewWallet = false;
                 tiv.start("");
@@ -265,8 +270,8 @@ namespace S2.Meta
                 {
                     using (BinaryWriter writer = new BinaryWriter(mw))
                     {
-                        writer.WriteIxiVarInt(Node.walletStorage.getPrimaryAddress().Length);
-                        writer.Write(Node.walletStorage.getPrimaryAddress());
+                        writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().Length);
+                        writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress());
                         NetworkClientManager.broadcastData(new char[] { 'M', 'H' }, ProtocolMessageCode.getBalance2, mw.ToArray(), null);
                     }
                 }
@@ -482,7 +487,7 @@ namespace S2.Meta
             List<byte[]> wallet_list = null;
             byte[] wallet = null;
             byte[] primary_address = (new Address(transaction.pubKey)).address;
-            if (Node.walletStorage.isMyAddress(primary_address))
+            if (IxianHandler.getWalletStorage().isMyAddress(primary_address))
             {
                 wallet = primary_address;
                 type = (int)ActivityType.TransactionSent;
@@ -494,7 +499,7 @@ namespace S2.Meta
             }
             else
             {
-                wallet_list = Node.walletStorage.extractMyAddressesFromAddressList(transaction.toList);
+                wallet_list = IxianHandler.getWalletStorage().extractMyAddressesFromAddressList(transaction.toList);
                 if (wallet_list != null)
                 {
                     type = (int)ActivityType.TransactionReceived;
@@ -515,13 +520,13 @@ namespace S2.Meta
                 {
                     foreach (var entry in wallet_list)
                     {
-                        activity = new Activity(Node.walletStorage.getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(entry), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, transaction.toList[entry].ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
+                        activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(entry), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, transaction.toList[entry].ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
                         ActivityStorage.insertActivity(activity);
                     }
                 }
                 else if (wallet != null)
                 {
-                    activity = new Activity(Node.walletStorage.getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(wallet), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, value.ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
+                    activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(wallet), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, value.ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
                     ActivityStorage.insertActivity(activity);
                 }
             }

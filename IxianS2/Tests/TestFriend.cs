@@ -67,7 +67,7 @@ namespace S2
             try
             {
                 // Decrypt data first
-                byte[] decrypted = CryptoManager.lib.decryptWithRSA(data, Node.walletStorage.getPrimaryPrivateKey());
+                byte[] decrypted = CryptoManager.lib.decryptWithRSA(data, IxianHandler.getWalletStorage().getPrimaryPrivateKey());
 
                 using (MemoryStream m = new MemoryStream(data))
                 {
