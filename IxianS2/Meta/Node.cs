@@ -44,6 +44,7 @@ namespace S2.Meta
 
         public Node()
         {
+            CoreConfig.simultaneousConnectedNeighbors = 6;
             IxianHandler.init(Config.version, this, Config.networkType);
             init();
         }
@@ -197,6 +198,8 @@ namespace S2.Meta
 
         public void start(bool verboseConsoleOutput)
         {
+            UpdateVerify.start();
+
             // Generate presence list
             PresenceList.init(IxianHandler.publicIP, Config.serverPort, 'R');
 
@@ -284,6 +287,8 @@ namespace S2.Meta
         {
             Program.noStart = true;
             IxianHandler.forceShutdown = true;
+
+            UpdateVerify.stop();
 
             // Stop TIV
             tiv.stop();
