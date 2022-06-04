@@ -13,7 +13,7 @@ namespace S2.Meta
 {
     class Balance
     {
-        public byte[] address = null;
+        public Address address = null;
         public IxiNumber balance = 0;
         public ulong blockHeight = 0;
         public byte[] blockChecksum = null;
@@ -182,12 +182,12 @@ namespace S2.Meta
                 walletStorage.writeWallet(new_password);
             }
 
-            Logging.info("Public Node Address: {0}", Base58Check.Base58CheckEncoding.EncodePlain(walletStorage.getPrimaryAddress()));
+            Logging.info("Public Node Address: {0}", walletStorage.getPrimaryAddress().ToString());
 
 
             if (walletStorage.viewingWallet)
             {
-                Logging.error("Viewing-only wallet {0} cannot be used as the primary DLT Node wallet.", Base58Check.Base58CheckEncoding.EncodePlain(walletStorage.getPrimaryAddress()));
+                Logging.error("Viewing-only wallet {0} cannot be used as the primary DLT Node wallet.", walletStorage.getPrimaryAddress().ToString());
                 return false;
             }
 
@@ -273,8 +273,8 @@ namespace S2.Meta
                 {
                     using (BinaryWriter writer = new BinaryWriter(mw))
                     {
-                        writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().Length);
-                        writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress());
+                        writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().addressNoChecksum.Length);
+                        writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress().addressNoChecksum);
                         NetworkClientManager.broadcastData(new char[] { 'M', 'H' }, ProtocolMessageCode.getBalance2, mw.ToArray(), null);
                     }
                 }
@@ -454,20 +454,20 @@ namespace S2.Meta
             };
         }
 
-        public override Wallet getWallet(byte[] id)
+        public override Wallet getWallet(Address id)
         {
             // TODO Properly implement this for multiple addresses
-            if(balance.address != null && id.SequenceEqual(balance.address))
+            if(balance.address != null && id.addressNoChecksum.SequenceEqual(balance.address.addressNoChecksum))
             {
                 return new Wallet(balance.address, balance.balance);
             }
             return new Wallet(id, 0);
         }
 
-        public override IxiNumber getWalletBalance(byte[] id)
+        public override IxiNumber getWalletBalance(Address id)
         {
             // TODO Properly implement this for multiple addresses
-            if (balance.address != null && id.SequenceEqual(balance.address))
+            if (balance.address != null && id.addressNoChecksum.SequenceEqual(balance.address.addressNoChecksum))
             {
                 return balance.balance;
             }
@@ -490,8 +490,8 @@ namespace S2.Meta
             int type = -1;
             IxiNumber value = transaction.amount;
             List<byte[]> wallet_list = null;
-            byte[] wallet = null;
-            byte[] primary_address = (new Address(transaction.pubKey)).address;
+            Address wallet = null;
+            Address primary_address = transaction.pubKey;
             if (IxianHandler.getWalletStorage().isMyAddress(primary_address))
             {
                 wallet = primary_address;
@@ -499,7 +499,7 @@ namespace S2.Meta
                 if (transaction.type == (int)Transaction.Type.PoWSolution)
                 {
                     type = (int)ActivityType.MiningReward;
-                    value = ConsensusConfig.calculateMiningRewardForBlock(BitConverter.ToUInt64(transaction.data, 0));
+                    value = ConsensusConfig.calculateMiningRewardForBlock(transaction.powSolution.blockNum);
                 }
             }
             else
@@ -525,13 +525,13 @@ namespace S2.Meta
                 {
                     foreach (var entry in wallet_list)
                     {
-                        activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(entry), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, transaction.toList[entry].ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
+                        activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(entry), Base58Check.Base58CheckEncoding.EncodePlain(primary_address.addressNoChecksum), transaction.toList, type, transaction.id, transaction.toList.First(x => x.Key.addressNoChecksum.SequenceEqual(entry)).ToString(), transaction.timeStamp, status, transaction.applied, transaction.getTxIdString());
                         ActivityStorage.insertActivity(activity);
                     }
                 }
                 else if (wallet != null)
                 {
-                    activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(wallet), Base58Check.Base58CheckEncoding.EncodePlain(primary_address), transaction.toList, type, transaction.id, value.ToString(), transaction.timeStamp, status, transaction.applied, Transaction.txIdV8ToLegacy(transaction.id));
+                    activity = new Activity(IxianHandler.getWalletStorage().getSeedHash(), Base58Check.Base58CheckEncoding.EncodePlain(wallet.addressNoChecksum), Base58Check.Base58CheckEncoding.EncodePlain(primary_address.addressNoChecksum), transaction.toList, type, transaction.id, value.ToString(), transaction.timeStamp, status, transaction.applied, transaction.getTxIdString());
                     ActivityStorage.insertActivity(activity);
                 }
             }
@@ -590,6 +590,11 @@ namespace S2.Meta
         public override BlockHeader getBlockHeader(ulong blockNum)
         {
             return BlockHeaderStorage.getBlockHeader(blockNum);
+        }
+
+        public override IxiNumber getMinSignerPowDifficulty(ulong blockNum)
+        {
+            throw new NotImplementedException();
         }
     }
 }

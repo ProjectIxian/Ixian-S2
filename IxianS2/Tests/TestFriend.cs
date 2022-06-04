@@ -1,7 +1,5 @@
 ﻿using IXICore;
 using IXICore.Meta;
-using IXICore.Network;
-using S2.Meta;
 using System;
 using System.IO;
 using System.Linq;
@@ -10,7 +8,7 @@ namespace S2
 {
     class TestFriend
     {
-        public byte[] walletAddress;
+        public Address walletAddress;
         public byte[] publicKey;
 
         public byte[] chachaKey = null;

@@ -47,7 +47,7 @@ namespace S2
                 return new JsonResponse { result = null, error = error };
             }
 
-            byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain((string)parameters["wallet"]);
+            Address wallet = new Address((string)parameters["wallet"]);
 
             string responseString = JsonConvert.SerializeObject("Friend added successfully");
 

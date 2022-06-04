@@ -1,5 +1,6 @@
 ﻿using IXICore;
 using IXICore.Meta;
+using IXICore.Utils;
 using S2.Meta;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace S2.Network
 
     public class QuotaManager
     {
-        static Dictionary<byte[], Quota> quotas = new Dictionary<byte[], Quota>();
+        static Dictionary<Address, Quota> quotas = new Dictionary<Address, Quota>(new AddressComparer());
 
         // Clears all quotas
         public static void clearQuotas()
@@ -31,7 +32,7 @@ namespace S2.Network
         }
 
         // Check if the provided wallet address has exceeded it's quota
-        public static bool exceededQuota(byte[] wallet)
+        public static bool exceededQuota(Address wallet)
         {
             // Extract the quota if found
             if (quotas.ContainsKey(wallet))
@@ -57,7 +58,7 @@ namespace S2.Network
         }
 
         // Adds a quota activity for a specified wallet
-        public static bool addActivity(byte[] wallet, bool info = true)
+        public static bool addActivity(Address wallet, bool info = true)
         {
             Quota quota = null;
             long current_timestamp = Clock.getTimestamp();
@@ -98,7 +99,7 @@ namespace S2.Network
         }
 
         // Adds a valid payment, resetting the quota for the specified wallet
-        public static bool addValidPayment(byte[] wallet)
+        public static bool addValidPayment(Address wallet)
         {
             Quota quota = null;
             // Extract the quota if found

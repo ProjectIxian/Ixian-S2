@@ -31,8 +31,8 @@ namespace S2
             {
                 using (BinaryWriter writer = new BinaryWriter(mw))
                 {
-                    writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().Length);
-                    writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress());
+                    writer.WriteIxiVarInt(IxianHandler.getWalletStorage().getPrimaryAddress().addressWithChecksum.Length);
+                    writer.Write(IxianHandler.getWalletStorage().getPrimaryAddress().addressWithChecksum);
                     NetworkClientManager.broadcastData(new char[]{ 'M', 'H' }, ProtocolMessageCode.getBalance2, mw.ToArray(), null);
                 }
             }
@@ -52,7 +52,7 @@ namespace S2
 
         // Adds a friend based on a wallet address
         // Returns false if the wallet address could not be found in the Presence List
-        static public bool addFriend(byte[] wallet)
+        static public bool addFriend(Address wallet)
         {
             Presence presence = PresenceList.getPresenceByAddress(wallet);
             if (presence == null)

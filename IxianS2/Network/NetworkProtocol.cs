@@ -60,13 +60,30 @@ namespace S2.Network
                         }
                         break;
 
+                    case ProtocolMessageCode.transactionData2:
+                        {
+                            Transaction tx = new Transaction(data, true, true);
+
+                            if (endpoint.presenceAddress.type == 'M' || endpoint.presenceAddress.type == 'H')
+                            {
+                                PendingTransactions.increaseReceivedCount(tx.id, endpoint.presence.wallet);
+                            }
+
+                            Node.tiv.receivedNewTransaction(tx);
+                            Logging.info("Received new transaction {0}", tx.id);
+
+                            Node.addTransactionToActivityStorage(tx);
+                        }
+                        break;
+
+
                     case ProtocolMessageCode.updatePresence:
                         // Parse the data and update entries in the presence list
                         PresenceList.updateFromBytes(data, 0);
                         break;
 
                     case ProtocolMessageCode.keepAlivePresence:
-                        byte[] address = null;
+                        Address address = null;
                         long last_seen = 0;
                         byte[] device_id = null;
                         bool updated = PresenceList.receiveKeepAlive(data, out address, out last_seen, out device_id, endpoint);
@@ -190,7 +207,7 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     int walletLen = reader.ReadInt32();
-                    byte[] wallet = reader.ReadBytes(walletLen);
+                    Address wallet = new Address(reader.ReadBytes(walletLen));
                     Presence p = PresenceList.getPresenceByAddress(wallet);
                     if (p != null)
                     {
@@ -206,7 +223,7 @@ namespace S2.Network
                     else
                     {
                         // TODO blacklisting point
-                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
+                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", wallet.ToString()));
                     }
                 }
             }
@@ -218,7 +235,7 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     int walletLen = (int)reader.ReadIxiVarUInt();
-                    byte[] wallet = reader.ReadBytes(walletLen);
+                    Address wallet = new Address(reader.ReadBytes(walletLen));
                     Presence p = PresenceList.getPresenceByAddress(wallet);
                     if (p != null)
                     {
@@ -234,7 +251,7 @@ namespace S2.Network
                     else
                     {
                         // TODO blacklisting point
-                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
+                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", wallet.ToString()));
                     }
                 }
             }
@@ -247,7 +264,7 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     int address_length = reader.ReadInt32();
-                    byte[] address = reader.ReadBytes(address_length);
+                    Address address = new Address(reader.ReadBytes(address_length));
 
                     // Retrieve the latest balance
                     IxiNumber balance = reader.ReadString();
@@ -280,7 +297,7 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     int address_length = (int)reader.ReadIxiVarUInt();
-                    byte[] address = reader.ReadBytes(address_length);
+                    Address address = new Address(reader.ReadBytes(address_length));
 
                     // Retrieve the latest balance
                     int balance_len = (int)reader.ReadIxiVarUInt();

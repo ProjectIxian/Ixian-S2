@@ -27,7 +27,7 @@ namespace S2.Network
         {
             bytesReceived += (ulong)bytes.Length;
 
-            string endpoint_wallet_string = Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet);
+            string endpoint_wallet_string = endpoint.presence.wallet.ToString();
             Logging.info(string.Format("Receiving S2 data from {0}", endpoint_wallet_string));
 
             StreamMessage message = new StreamMessage(bytes);
@@ -165,7 +165,7 @@ namespace S2.Network
                         transaction.signature = signature;
 
                         // Verify the signed transaction
-                        if (transaction.verifySignature(transaction.pubKey, null))
+                        if (transaction.verifySignature(transaction.pubKey.pubKey, null))
                         {
                             // Broadcast the transaction
                             CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.transactionData, transaction.getBytes(), null, endpoint);
@@ -185,7 +185,7 @@ namespace S2.Network
         }
 
         // Sends an error stream message to a recipient
-        public static void sendError(byte[] recipient, byte[] sender, byte[] data, RemoteEndpoint endpoint = null)
+        public static void sendError(Address recipient, Address sender, byte[] data, RemoteEndpoint endpoint = null)
         {
             StreamMessage message = new StreamMessage();
             message.type = StreamMessageCode.error;

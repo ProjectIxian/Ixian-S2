@@ -161,9 +161,9 @@ namespace S2
                     writer.Write(CoreConfig.protocolVersion);
 
                     // Send the public node address
-                    byte[] address = IxianHandler.getWalletStorage().getPrimaryAddress();
-                    writer.Write(address.Length);
-                    writer.Write(address);
+                    Address address = IxianHandler.getWalletStorage().getPrimaryAddress();
+                    writer.Write(address.addressWithChecksum.Length);
+                    writer.Write(address.addressWithChecksum);
 
                     // Send the testnet designator
                     writer.Write(IxianHandler.isTestNet);
