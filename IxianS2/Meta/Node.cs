@@ -387,7 +387,7 @@ namespace S2.Meta
             ActivityStorage.updateStatus(txid, status, 0);
         }
 
-        public override void receivedBlockHeader(BlockHeader block_header, bool verified)
+        public override void receivedBlockHeader(Block block_header, bool verified)
         {
             if (balance.blockChecksum != null && balance.blockChecksum.SequenceEqual(block_header.blockChecksum))
             {
@@ -434,24 +434,7 @@ namespace S2.Meta
 
         public override Block getLastBlock()
         {
-            // TODO handle this more elegantly
-            BlockHeader bh = tiv.getLastBlockHeader();
-            return new Block()
-            {
-                blockNum = bh.blockNum,
-                blockChecksum = bh.blockChecksum,
-                lastBlockChecksum = bh.lastBlockChecksum,
-                lastSuperBlockChecksum = bh.lastSuperBlockChecksum,
-                lastSuperBlockNum = bh.lastSuperBlockNum,
-                difficulty = bh.difficulty,
-                superBlockSegments = bh.superBlockSegments,
-                timestamp = bh.timestamp,
-                transactions = bh.transactions,
-                version = bh.version,
-                walletStateChecksum = bh.walletStateChecksum,
-                signatureFreezeChecksum = bh.signatureFreezeChecksum,
-                compactedSigs = true
-            };
+            return tiv.getLastBlockHeader();
         }
 
         public override Wallet getWallet(Address id)
@@ -587,7 +570,7 @@ namespace S2.Meta
             }
         }
 
-        public override BlockHeader getBlockHeader(ulong blockNum)
+        public override Block getBlockHeader(ulong blockNum)
         {
             return BlockHeaderStorage.getBlockHeader(blockNum);
         }
