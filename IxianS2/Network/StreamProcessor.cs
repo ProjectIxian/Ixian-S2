@@ -76,7 +76,7 @@ namespace S2.Network
                         }
 
                         // Validate transaction amount and fee
-                        if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.transactionPrice)
+                        if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.forceTransactionPrice)
                         {
                             Logging.error(string.Format("Relayed message transaction amount too low for {0}", endpoint_wallet_string));
                             sendError(message.sender);

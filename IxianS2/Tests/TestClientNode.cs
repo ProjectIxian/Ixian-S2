@@ -105,7 +105,7 @@ namespace S2
             Transaction transaction = new Transaction((int)Transaction.Type.Normal);
             transaction.amount = ConsensusConfig.relayPriceInitial;
             transaction.toList.Add(friend.relayWallet, transaction.amount);
-            transaction.fee = ConsensusConfig.transactionPrice;
+            transaction.fee = ConsensusConfig.forceTransactionPrice;
             transaction.fromList.Add(new byte[1] { 0 }, transaction.amount + transaction.fee);
             transaction.blockHeight = Node.blockHeight;
             transaction.pubKey = IxianHandler.getWalletStorage().getPrimaryPublicKey(); // TODO: check if it's in the walletstate already

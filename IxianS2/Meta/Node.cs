@@ -417,8 +417,10 @@ namespace S2.Meta
 
         public override int getLastBlockVersion()
         {
-            if (tiv.getLastBlockHeader() == null || tiv.getLastBlockHeader().version < Block.maxVersion)
+            if (tiv.getLastBlockHeader() == null
+                || tiv.getLastBlockHeader().version < Block.maxVersion)
             {
+                // TODO Omega force to v10 after upgrade
                 return Block.maxVersion - 1;
             }
             return tiv.getLastBlockHeader().version;
