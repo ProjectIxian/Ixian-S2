@@ -45,7 +45,7 @@ namespace S2.Meta
         public Node()
         {
             CoreConfig.simultaneousConnectedNeighbors = 6;
-            IxianHandler.init(Config.version, this, Config.networkType);
+            IxianHandler.init(Config.version, this, Config.networkType, true);
             init();
         }
 
