@@ -253,7 +253,7 @@ namespace S2.Meta
                 tiv.start("");
             }else
             {
-                tiv.start("", 0, null);
+                tiv.start("", 0, null, false);
             }
 
             // Start the maintenance thread
