@@ -250,10 +250,10 @@ namespace S2.Meta
             if (generatedNewWallet || !File.Exists(Config.walletFile))
             {
                 generatedNewWallet = false;
-                tiv.start("");
+                tiv.start("", false, false);
             }else
             {
-                tiv.start("", 0, null, false);
+                tiv.start("", 0, null, false, false);
             }
 
             // Start the maintenance thread
