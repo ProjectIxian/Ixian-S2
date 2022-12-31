@@ -58,6 +58,7 @@ namespace S2
         }
         static void checkVCRedist()
         {
+#pragma warning disable CA1416 // Validate platform compatibility
             object installed_vc_redist = Microsoft.Win32.Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64", "Installed", 0);
             object installed_vc_redist_debug = Microsoft.Win32.Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\debug\\x64", "Installed", 0);
             bool success = false;
@@ -144,6 +145,7 @@ namespace S2
                 Console.ReadLine();
                 Environment.Exit(-1);
             }
+#pragma warning restore CA1416 // Validate platform compatibility
         }
 
         static void Main(string[] args)
@@ -242,7 +244,8 @@ namespace S2
 
             if (mainLoopThread != null)
             {
-                mainLoopThread.Abort();
+                mainLoopThread.Interrupt();
+                mainLoopThread.Join();
                 mainLoopThread = null;
             }
 

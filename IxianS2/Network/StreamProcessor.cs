@@ -168,7 +168,7 @@ namespace S2.Network
                         if (transaction.verifySignature(transaction.pubKey.pubKey, null))
                         {
                             // Broadcast the transaction
-                            CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.transactionData, transaction.getBytes(), null, endpoint);
+                            CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.transactionData2, transaction.getBytes(true, true), null, endpoint);
                         }
                         return;
                                                  

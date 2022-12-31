@@ -34,7 +34,8 @@ namespace S2
             // Force stopping of reconnect thread
             if (reconnectThread == null)
                 return;
-            reconnectThread.Abort();
+            reconnectThread.Interrupt();
+            reconnectThread.Join();
             reconnectThread = null;
         }
 
