@@ -5,9 +5,11 @@ using IXICore.Utils;
 using S2.Network;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Activity = IXICore.Meta.Activity;
 
 namespace S2.Meta
 {
@@ -216,9 +218,9 @@ namespace S2.Meta
             // Start the HTTP JSON API server
             apiServer = new APIServer(Config.apiBinds, Config.apiUsers, Config.apiAllowedIps);
 
-            if (IXICore.Platform.onMono() == false && !Config.disableWebStart)
+            if (IXICore.Platform.onWindows() == true && !Config.disableWebStart)
             {
-                System.Diagnostics.Process.Start(Config.apiBinds[0]);
+                Process.Start(new ProcessStartInfo(Config.apiBinds[0]) { UseShellExecute = true });
             }
 
             // Prepare stats screen
