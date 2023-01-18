@@ -201,15 +201,10 @@ namespace S2
             Logging.info("Starting IXIAN S2 {0} ({1})", Config.version, CoreConfig.version);
 
             // Check for the right vc++ redist for the argon miner
-            // Ignore if we're on Mono
-            if (IXICore.Platform.onMono() == false)
+            // Ignore if we're not on Windows
+            if (Platform.onWindows())
             {
-                Logging.info("Runtime environment is .NET");
                 checkVCRedist();
-            }
-            else
-            {
-                Logging.info("Runtime environment is Mono");
             }
 
             // Log the parameters to notice any changes
