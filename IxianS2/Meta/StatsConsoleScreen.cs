@@ -138,11 +138,10 @@ namespace S2.Meta
             if (connectionsIn + connectionsOut < 1)
                 dltStatus = "connecting   ";
 
-            if (Clock.getTimestamp() - BlockHeaderStorage.lastBlockHeaderTime > 1800) // if no block for over 1800 seconds
+            if (IxianHandler.status == NodeStatus.stalled) // if node is stalled
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 dltStatus = "No block received for over 30 minutes";
-                IxianHandler.status = NodeStatus.stalled;
             }
 
             writeLine(dltStatus);

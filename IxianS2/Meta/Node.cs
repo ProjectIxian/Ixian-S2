@@ -282,6 +282,14 @@ namespace S2.Meta
                 }
             }
 
+            if (IxianHandler.status != NodeStatus.warmUp)
+            {
+                if (Clock.getTimestamp() - BlockHeaderStorage.lastBlockHeaderTime > 1800) // if no block for over 1800 seconds
+                {
+                    IxianHandler.status = NodeStatus.stalled;
+                }
+            }
+
             return running;
         }
 
