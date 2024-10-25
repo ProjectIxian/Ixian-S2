@@ -44,22 +44,6 @@ namespace S2.Network
                         StreamProcessor.receivedTransactionSignature(data, endpoint);
                         break;
 
-                    case ProtocolMessageCode.transactionData:
-                        {
-                            Transaction tx = new Transaction(data, true);
-
-                            if (endpoint.presenceAddress.type == 'M' || endpoint.presenceAddress.type == 'H')
-                            {
-                                PendingTransactions.increaseReceivedCount(tx.id, endpoint.presence.wallet);
-                            }
-
-                            Node.tiv.receivedNewTransaction(tx);
-                            Logging.info("Received new transaction {0}", tx.id);
-
-                            Node.addTransactionToActivityStorage(tx);
-                        }
-                        break;
-
                     case ProtocolMessageCode.transactionData2:
                         {
                             Transaction tx = new Transaction(data, true, true);
@@ -89,16 +73,8 @@ namespace S2.Network
                         bool updated = PresenceList.receiveKeepAlive(data, out address, out last_seen, out device_id, endpoint);
                         break;
 
-                    case ProtocolMessageCode.getPresence:
-                        handleGetPresence(data, endpoint);
-                        break;
-
                     case ProtocolMessageCode.getPresence2:
                         handleGetPresence2(data, endpoint);
-                        break;
-
-                    case ProtocolMessageCode.balance:
-                        handleBalance(data, endpoint);
                         break;
 
                     case ProtocolMessageCode.balance2:
@@ -252,39 +228,6 @@ namespace S2.Network
                     {
                         // TODO blacklisting point
                         Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", wallet.ToString()));
-                    }
-                }
-            }
-        }
-
-        static void handleBalance(byte[] data, RemoteEndpoint endpoint)
-        {
-            using (MemoryStream m = new MemoryStream(data))
-            {
-                using (BinaryReader reader = new BinaryReader(m))
-                {
-                    int address_length = reader.ReadInt32();
-                    Address address = new Address(reader.ReadBytes(address_length));
-
-                    // Retrieve the latest balance
-                    IxiNumber balance = reader.ReadString();
-
-                    if (address.SequenceEqual(IxianHandler.getWalletStorage().getPrimaryAddress()))
-                    {
-                        // Retrieve the blockheight for the balance
-                        ulong block_height = reader.ReadUInt64();
-
-                        if (block_height > Node.balance.blockHeight && (Node.balance.balance != balance || Node.balance.blockHeight == 0))
-                        {
-                            byte[] block_checksum = reader.ReadBytes(reader.ReadInt32());
-
-                            Node.balance.address = address;
-                            Node.balance.balance = balance;
-                            Node.balance.blockHeight = block_height;
-                            Node.balance.blockChecksum = block_checksum;
-                            Node.balance.lastUpdate = Clock.getTimestamp();
-                            Node.balance.verified = false;
-                        }
                     }
                 }
             }
